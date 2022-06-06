@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <div class="title">投资标初选列表</div>
+    <div class="title">行业分类列表</div>
 
     <div class="add-button">
       <el-form :inline="true" label-width="270px" class="demo-form-inline">
@@ -20,17 +20,18 @@
       </el-form>
 
       <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
-      <el-button type="primary" @click="getCoreIndexList" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="getIndustryClassList" :loading="loading">查 询</el-button>
     </div>
-    
+
     <div class="table-container">
       <el-table :data="dataList" border highlight-current-row :cell-style="{ 'text-align': 'center' }">
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
         <el-table-column label="股票代码" prop="code" />
-        <el-table-column label="股票名称" prop="codeName" />
-        <el-table-column label="是否新股" prop="isNewShares" />
-        <el-table-column label="核心指数" prop="finalCalCore" />
-        <el-table-column label="计算日期" prop="calDate" />
+        <el-table-column label="股票名称" prop="code_name" />
+        <el-table-column label="所属申万行业代码" prop="industry_sw_code" />
+        <el-table-column label="所属申万行业名称" prop="industry_sw" />
+        <el-table-column label="所属中信行业代码" prop="industry_cit_code" />
+        <el-table-column label="所属中信行业名称" prop="industry_cit" />
       </el-table>
 
       <!-- 上下页调整按钮 -->
@@ -54,15 +55,18 @@
 </template>
 
 <script>
-import { InvestmentModel } from '../../model/investment'
+import { IndustryClassModel } from '../../model/industryClass'
 import UploadImgs from '../../component/base/upload-image/index'
 
 export default {
   name: 'List',
   components: { UploadImgs },
 
+  // 页面数据缓存区
   data() {
     return {
+      // 详情页面弹出标识 true-弹出  false-关闭
+      showDialog: false,
       // 查询条件股票代码的默认值
       code: '',
       // 查询条件股票名称的默认值
@@ -86,17 +90,20 @@ export default {
       curPage: 0,
     }
   },
+
   // 生命周期函数
   created() {
-    this.getCoreIndexList()
+    this.getIndustryClassList()
   },
+
+  // 方法区
   methods: {
     // 强制更新查询参数
     orderNoChange() {
       this.$forceUpdate()
     },
-    // 获取核心指数列表
-    async getCoreIndexList() {
+    // 获取财务分析指标列表
+    async getIndustryClassList() {
       this.loading = true
       let params = {
         code: this.code,
@@ -105,7 +112,7 @@ export default {
         pageSize: this.pageParams.pagesize,
       }
       try {
-        const result = await InvestmentModel.getCoreIndexList(params)
+        const result = await IndustryClassModel.getIndustryClassList(params)
         // 此处要加判断：成功和失败要怎么处理
         // 此处要加判断：成功和失败要怎么处理
         // 此处要加判断：成功和失败要怎么处理
@@ -127,34 +134,21 @@ export default {
       this.pageParams.page = 1
       this.loading = false
     },
-    // 关闭详情表单后的操作：将所有字符值重置为初始值并移除校验结果
-    resetForm() {
-      this.$refs.form.resetFields()
-    },
     // 分页相关方法
     async hCurrentChange(curPage) {
       // alert(curPage)
       // 1. 更新页码
       this.pageParams.page = curPage
       // 2. 重发请求
-      await this.getCoreIndexList()
+      await this.getIndustryClassList()
     },
     // pageSize 改变时会触发:用户调整了每页显示的条数
     async hSizeChange(pagesize) {
       // 1. 更新每页条数
       this.pageParams.pagesize = pagesize
       // 2. 重发请求
-      await this.getCoreIndexList()
+      await this.getIndustryClassList()
     },
-    // 分页组件删除最后一条数据后 跳转异常处理
-    // 分页异常的处理
-    // 判断是不是最后一条数据 如果是的话 则请求上一页的数据
-    // if (this.coreIndexList.length === 1) {
-    //     this.page--
-    //     if (this.page <= 0) {
-    //         this.page = 1
-    //     }
-    // }
   },
 }
 </script>
