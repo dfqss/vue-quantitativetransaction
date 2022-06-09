@@ -15,6 +15,15 @@ class Investment {
       data,
     })
   }
+
+  // 分页查询核心指标历史信息列表
+  static async getCoreIndexHistoryList(data) {
+    return _axios({
+      method: 'post',
+      url: 'investmentV1/coreIndex/getCoreIndexHistoryList',
+      data,
+    })
+  }
 }
 
 export { Investment as InvestmentModel }

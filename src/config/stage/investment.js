@@ -37,6 +37,15 @@ const investmentRouter = {
     //   icon: 'iconfont icon-quan',
     // },
     {
+      title: '核心指标历史',
+      type: 'view',
+      name: 'coreIndexHist',
+      route: '/investment/coreIndexHist-list',
+      filePath: 'view/investment/coreIndexHist-list.vue',
+      inNav: true,
+      icon: 'iconfont icon-quan',
+    },
+    {
       title: '财务分析指标',
       type: 'view',
       name: 'finAnalysis',
