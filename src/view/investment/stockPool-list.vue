@@ -29,6 +29,7 @@
         <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="期数" prop="periods" />
+        <el-table-column label="行业名称(申万)" prop="industry_sw" />
         <el-table-column label="创建日期" prop="create_time" />
       </el-table>
 
