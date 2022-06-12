@@ -38,11 +38,24 @@
       >
         <el-table-column type="selection" :selectable="selectInit" reserve-selection align="center" width="55" />
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
-        <el-table-column label="股票代码" prop="code" />
+        <el-table-column label="股票代码" prop="code" /> 
         <el-table-column label="股票名称" prop="codeName" />
-        <el-table-column label="是否新股" prop="isNewShares" />
+        <el-table-column label="是否新股" prop="isNewShares" width="100">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.isNewShares == 'N'" type="success">新股</el-tag>
+            <el-tag v-if="scope.row.isNewShares == 'C'" type="warning">次新股</el-tag>
+            <el-tag v-if="scope.row.isNewShares == 'F'" type="info">非新股</el-tag>
+            <!-- <el-tag v-else type="info">非新股</el-tag> -->
+          </template>
+        </el-table-column>
         <el-table-column label="核心指数" prop="finalCalCore" />
-        <el-table-column label="期数" prop="periods" />
+        <el-table-column label="期数" prop="periods" width="80" />
+        <el-table-column label="是否本期新增" prop="showTimes" width="120">
+          <template slot-scope="scope">
+            <el-tag v-if="scope.row.showTimes == 1" type="success">本期新增</el-tag>
+            <el-tag v-else type="info">往期数据</el-tag>
+          </template>
+        </el-table-column>
         <el-table-column label="计算日期" prop="calDate" />
         <el-table-column label="入池状态" v-if="false" prop="inPoolStatus" />
       </el-table>
