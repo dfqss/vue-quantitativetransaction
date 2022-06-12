@@ -20,17 +20,31 @@
       </el-form>
 
       <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
-      <el-button type="primary" @click="getCoreIndexList" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="batchInsertStockPool" :loading="loading">加入股票池</el-button>
     </div>
-    
+
     <div class="table-container">
-      <el-table :data="dataList" border highlight-current-row :cell-style="{ 'text-align': 'center' }">
+      <el-table
+        :data="dataList"
+        border
+        highlight-current-row
+        :cell-style="{ 'text-align': 'center' }"
+        ref="multipleTable"
+        style="width: 100%"
+        tooltip-effect="dark"
+        :row-key="rowKeyInit"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column type="selection" :selectable="selectInit" reserve-selection align="center" width="55" />
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
         <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="是否新股" prop="isNewShares" />
         <el-table-column label="核心指数" prop="finalCalCore" />
+        <el-table-column label="期数" prop="periods" />
         <el-table-column label="计算日期" prop="calDate" />
+        <el-table-column label="入池状态" v-if="false" prop="inPoolStatus" />
       </el-table>
 
       <!-- 上下页调整按钮 -->
@@ -55,11 +69,10 @@
 
 <script>
 import { InvestmentModel } from '../../model/investment'
-import UploadImgs from '../../component/base/upload-image/index'
+import { StockPoolModel } from '../../model/stockPool'
 
 export default {
   name: 'List',
-  components: { UploadImgs },
 
   data() {
     return {
@@ -71,6 +84,8 @@ export default {
       loading: false,
       // 页签标题
       dialogTitle: '',
+      // 选项值
+      multipleSelection: [],
       // 分页参数
       pageParams: {
         // 页码
@@ -91,11 +106,14 @@ export default {
     this.getCoreIndexList()
   },
   methods: {
-    // 强制更新查询参数
-    orderNoChange() {
-      this.$forceUpdate()
+    // 点击查询按钮触发事件
+    async queryList() {
+      // 重置当前页数，防止输入查询条件时，页码传值错误
+      this.pageParams.page = 1
+      this.curPage = 1
+      await this.getCoreIndexList()
     },
-    // 获取核心指数列表
+    // 事件：获取核心指数列表
     async getCoreIndexList() {
       this.loading = true
       let params = {
@@ -106,30 +124,77 @@ export default {
       }
       try {
         const result = await InvestmentModel.getCoreIndexList(params)
-        // 此处要加判断：成功和失败要怎么处理
-        // 此处要加判断：成功和失败要怎么处理
-        // 此处要加判断：成功和失败要怎么处理
-        // 重要的事情说三遍
-        // if (res.code < window.MAX_SUCCESS_CODE) {
-        //   this.$message.success(`${res.message}`)
-        //   this.resetForm(formName)
-        // }
+        if (result.code == '9999') {
+          this.$message.error(result.message)
+          this.dataList = null
+          this.total = 0
+          this.loading = false
+          return
+        }
         this.dataList = result.dataList
         this.total = result.totalNum
       } catch (error) {
-        // this.$message.error('失败信息')
-        // console.log(error)
-        // if (error.code === 10020) {
-        //   result = {}
-        // }
+        this.$message.error('调用核心指数查询API异常')
       }
-      // 重置当前页数，防止从第二页查询时，再点击查询按钮，页数会传输错误
-      this.pageParams.page = 1
       this.loading = false
     },
-    // 关闭详情表单后的操作：将所有字符值重置为初始值并移除校验结果
-    resetForm() {
-      this.$refs.form.resetFields()
+    // 批量插入股票池数据
+    async batchInsertStockPool() {
+      this.loading = true
+      if(this.multipleSelection == null || this.multipleSelection.length == 0) {
+        this.$notify.info({title: '提示', message: '请选择你要入池的股票信息'});
+        this.loading = false
+        return
+      }
+      let params = {
+        insertData: this.multipleSelection,
+      }
+      try {
+        const result = await StockPoolModel.batchInsertStockPool(params)
+        if (result.code == '0000') {
+          this.$notify({ title: '成功', message: result.message, type: 'success'});
+        } else {
+          this.$message.error(result.message)
+        }
+      } catch (error) {
+        this.$message.error('调用股票池批量添加API异常')
+      }
+      // 调用服务以后，需要把勾选清除掉
+      this.$refs.multipleTable.clearSelection()
+      this.loading = false
+      this.getCoreIndexList()
+    },
+    // 强制更新查询参数
+    orderNoChange() {
+      this.$forceUpdate()
+    },
+    // row-key定义
+    rowKeyInit(row) {
+      return row.code
+    },
+    // 多选
+    handleSelectionChange(val) {
+      this.multipleSelection = val
+      // this.$emit(
+      //   'batchInsertCoreIndex',
+      //   val.map(item => {
+      //     return {
+      //       id: item.code,
+      //       defectStatus: item.defectStatus,
+      //     }
+      //   }),
+      // )
+    },
+    // 限制表格勾选，勾选规则:需要是同一类型的数据
+    selectInit(row) {
+      // 限制逻辑，返回true则为可勾选，反之则禁止勾选
+      let judge = true
+      // if (this.multipleSelection.length != 0) {
+      //   judge = this.multipleSelection.some(item => {
+      //     return item.code === row.code
+      //   })
+      // }
+      return !(row.inPoolStatus == 'in')
     },
     // 分页相关方法
     async hCurrentChange(curPage) {

@@ -180,15 +180,6 @@ export default {
       // 2. 重发请求
       await this.getCoreIndexHistoryList()
     },
-    // 分页组件删除最后一条数据后 跳转异常处理
-    // 分页异常的处理
-    // 判断是不是最后一条数据 如果是的话 则请求上一页的数据
-    // if (this.coreIndexList.length === 1) {
-    //     this.page--
-    //     if (this.page <= 0) {
-    //         this.page = 1
-    //     }
-    // }
   },
 }
 </script>
