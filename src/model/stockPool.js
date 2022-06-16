@@ -19,6 +19,16 @@ class StockPool {
       data,
     })
   }
+
+  //修改股票备注
+  static async updateStockPoolByCode(data) {
+    return _axios({
+      method: 'post',
+      url: 'investmentV1/stockPool/updateStockPoolByCode',
+      data,
+    })
+  }
+
 }
 
 export { StockPool as StockPoolModel }

@@ -30,6 +30,26 @@
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="期数" prop="periods" />
         <el-table-column label="行业名称(申万)" prop="industry_sw" />
+         <!-- 单元格编辑 -->
+        <el-table-column
+            label="备注"
+            prop="remark"
+            show-overflow-tooltip
+          >
+         <template slot-scope="props">
+              <div v-if="!props.row.editFlag" class="table-edit">
+                <div @click="handleEdit(props.row)" class="content">{{ props.row.remark }}</div>
+                <div class="cell-icon" @click="handleCellEdit(props.row)"><i class="el-icon-edit"></i></div>
+              </div>
+              <div v-else class="table-edit">
+                <el-input v-model="props.row.remark" placeholder></el-input>
+                <div class="cell-icon-edit">
+                  <div class="cell-save" @click="handleCellSave(props.row)"><i class="el-icon-check"></i></div>
+                  <div class="cell-cancel" @click="handleCellCancel(props.row)"><i class="el-icon-close"></i></div>
+                </div>
+              </div>
+            </template>
+        </el-table-column>
         <el-table-column label="创建日期" prop="create_time" />
       </el-table>
 
@@ -81,6 +101,9 @@ export default {
       total: 0,
       // 当前页数
       curPage: 0,
+      // 单元格编辑相关
+      editRow: 0,
+      showTooltip: true,
     }
   },
   // 生命周期函数
@@ -95,7 +118,7 @@ export default {
       this.curPage = 1
       await this.getStockPoolList()
     },
-    // 获取核心指数列表
+    // 获取股票池列表
     async getStockPoolList() {
       this.loading = true
       const params = {
@@ -117,6 +140,47 @@ export default {
         this.total = result.totalNum
       } catch (error) {
         this.$message.error('调用股票池查询API异常')
+      }
+      this.loading = false
+    },
+     // 单元格编辑
+    handleEdit(self, index, row) {
+      self.handleCellEdit(row)
+      console.log(index, row)
+    }, 
+    handleCellEdit(row) {
+      row.editFlag = true // eslint-disable-line
+      this.tempEditRemark = row.remark
+      this.editRow++
+    },
+    handleCellSave(row) {
+      row.editFlag = false // eslint-disable-line
+      setTimeout(() => {
+        this.editRow--
+        this.updateStockPoolByCode(row)
+        this.$message({
+          type: 'success',
+          message: '修改成功',
+        })
+      }, 1000)
+    },
+    handleCellCancel(row) {
+      row.editFlag = false // eslint-disable-line
+      console.log(this.tempEditRemark)
+      row.remark = this.tempEditRemark // eslint-disable-line
+      this.editRow--
+    },
+    async updateStockPoolByCode(row){
+      this.loading = true
+      const params = {
+        code: row.code,
+        remark: row.remark,
+      }
+      console.log(params)
+       try {
+        const result = await StockPoolModel.updateStockPoolByCode(params)
+      } catch (error) {
+        this.$message.error('修改股票备注API异常')
       }
       this.loading = false
     },
