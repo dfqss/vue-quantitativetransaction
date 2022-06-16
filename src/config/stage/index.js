@@ -4,6 +4,7 @@ import pluginsConfig from './plugin'
 import Utils from '@/lin/util/util'
 import contentRouter from './content'
 import investmentRouter from './investment'
+import uploadRouter from './upload'
 
 // eslint-disable-next-line import/no-mutable-exports
 let homeRouter = [
@@ -49,7 +50,8 @@ let homeRouter = [
   adminConfig,
   // bookConfig,
   // contentRouter,
-  investmentRouter
+  investmentRouter,
+  uploadRouter
 ]
 
 const plugins = [...pluginsConfig]
