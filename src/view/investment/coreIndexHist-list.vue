@@ -43,7 +43,7 @@
       </el-form>
 
       <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
-      <el-button type="primary" @click="getCoreIndexHistoryList" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
     </div>
 
     <div class="table-container">
@@ -79,11 +79,9 @@
 
 <script>
 import { InvestmentModel } from '../../model/investment'
-import UploadImgs from '../../component/base/upload-image/index'
 
 export default {
   name: 'List',
-  components: { UploadImgs },
 
   data() {
     return {
@@ -119,9 +117,12 @@ export default {
     this.getCoreIndexHistoryList()
   },
   methods: {
-    // 强制更新查询参数
-    orderNoChange() {
-      this.$forceUpdate()
+    // 点击查询按钮触发事件
+    async queryList() {
+      // 重置当前页数，防止输入查询条件时，页码传值错误
+      this.pageParams.page = 1
+      this.curPage = 1
+      await this.getCoreIndexHistoryList()
     },
     // 获取核心指数列表
     async getCoreIndexHistoryList() {
@@ -140,30 +141,24 @@ export default {
       }
       try {
         const result = await InvestmentModel.getCoreIndexHistoryList(params)
-        // 此处要加判断：成功和失败要怎么处理
-        // 此处要加判断：成功和失败要怎么处理
-        // 此处要加判断：成功和失败要怎么处理
-        // 重要的事情说三遍
-        // if (res.code < window.MAX_SUCCESS_CODE) {
-        //   this.$message.success(`${res.message}`)
-        //   this.resetForm(formName)
-        // }
+        if (result.code == '9999') {
+          this.$message.error(result.message)
+          this.dataList = null
+          this.total = 0
+          this.loading = false
+          return
+        }
         this.dataList = result.dataList
         this.total = result.totalNum
       } catch (error) {
-        // this.$message.error('失败信息')
-        // console.log(error)
-        // if (error.code === 10020) {
-        //   result = {}
-        // }
+        this.$message.error('调用核心指标历史查询API异常')
       }
       // 重置当前页数，防止从第二页查询时，再点击查询按钮，页数会传输错误
-      this.pageParams.page = 1
       this.loading = false
     },
-    // 关闭详情表单后的操作：将所有字符值重置为初始值并移除校验结果
-    resetForm() {
-      this.$refs.form.resetFields()
+    // 强制更新查询参数
+    orderNoChange() {
+      this.$forceUpdate()
     },
     // 分页相关方法
     async hCurrentChange(curPage) {
