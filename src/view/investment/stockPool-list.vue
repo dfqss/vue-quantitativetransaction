@@ -28,6 +28,7 @@
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
         <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="codeName" />
+        <el-table-column label="资本市场指标" prop="capitalMarket" />
         <el-table-column label="期数" prop="periods" />
         <el-table-column label="行业名称(申万)" prop="industry_sw" />
          <!-- 单元格编辑 -->

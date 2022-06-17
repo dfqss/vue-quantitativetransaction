@@ -40,6 +40,7 @@
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
         <el-table-column label="股票代码" prop="code" /> 
         <el-table-column label="股票名称" prop="codeName" />
+        <el-table-column label="资本市场指标" prop="capitalMarket" />
         <el-table-column label="是否新股" prop="isNewShares" width="100">
           <template slot-scope="scope">
             <el-tag v-if="scope.row.isNewShares == 'N'" type="success">新股</el-tag>

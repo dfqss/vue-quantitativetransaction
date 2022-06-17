@@ -29,6 +29,7 @@
         <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="code_name" />
 
+        <el-table-column label="资本市场指标" prop="capitalMarket" />
         <el-table-column label="总股本" prop="total_shares" />
         <el-table-column label="自由流通股本" prop="free_float_shares" />
         <el-table-column label="流通股本" prop="share_issuing_mkt" />
