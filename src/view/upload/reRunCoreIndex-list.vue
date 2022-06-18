@@ -6,17 +6,24 @@
       <el-form class="demo-form-inline">
         <el-form-item label="文件类型">
           <el-select size="medium" v-model="fileType" placeholder="请选择指标文件类型" clearable="">
-            <el-option label="核心指标" value="HXZB"></el-option>
-            <el-option label="上市日期" value="SSRQ"></el-option>
-            <el-option label="财务分析指标" value="CWFXZB"></el-option>
-            <el-option label="成长指标" value="CZZB"></el-option>
-            <el-option label="杜邦分析指标" value="DBFXZB"></el-option>
-            <el-option label="股票估值" value="GPGZ"></el-option>
-            <el-option label="技术分析指标" value="JSFXZB"></el-option>
-            <el-option label="行业分类" value="HYFL"></el-option>
-            <el-option label="证券基础指标" value="ZQJCZB"></el-option>
+            <el-option label="核心指标-往期重算" value="REC8"></el-option>
             <!-- <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"> </el-option> -->
           </el-select>
+        </el-form-item>
+
+        <el-form-item label="计算期数">
+          <el-col :span="30">
+            <el-input
+              v-model="periods"
+              size="medium"
+              placeholder="请输入需要重新计算的期数"
+              @input="orderNoChange"
+              onKeyUp="value=value.replace(/[^\d]/g,'').replace(/^0{1,}/g,'')"
+              clearable=""
+            >
+            </el-input> 
+          </el-col>&nbsp;
+          <el-button size="medium" type="success" @click="validatePeriods" :loading="loading" :disabled="noVali">校 验</el-button>
         </el-form-item>
       </el-form>
 
@@ -45,7 +52,12 @@
         </template>
       </el-upload>
       <br />
-      <el-button size="small" type="success" @click="UploadFile" :loading="loading">提 交</el-button>
+
+      <el-tooltip effect="dark" :disabled="!noCommit" content="请先进行期数校验" placement="top">
+        <div style="width: 80px">
+          <el-button size="small" type="success" @click="UploadFile" :loading="loading" :disabled="noCommit">提 交</el-button>
+        </div>
+      </el-tooltip>
     </div>
   </div>
 </template>
@@ -57,9 +69,12 @@ export default {
   // 页面数据缓存区
   data() {
     return {
+      noVali: true,
       loading: false,
+      noCommit: true,
       fileType: '',
       fileList: [],
+      periods: '',
     }
   },
 
@@ -92,6 +107,11 @@ export default {
         this.loading = false
         return
       }
+      if (this.periods == null || this.periods == '') {
+        this.$notify({ title: '警告', message: '请输入文件期数', type: 'warning' })
+        this.loading = false
+        return
+      }
       if (this.fileList.length <= 0) {
         this.$notify({ title: '警告', message: '请选择要上传的文件', type: 'warning' })
         this.loading = false
@@ -100,6 +120,7 @@ export default {
       const formData = new FormData()
       formData.append('files', this.fileList[0].raw)
       formData.append('fileType', this.fileType)
+      formData.append('periods', this.periods)
       try {
         const result = await AllIndexModel.uploadFile(formData)
         if (result.code == '0000') {
@@ -112,6 +133,42 @@ export default {
       }
       this.fileList = []
       this.loading = false
+      this.noCommit = true
+    },
+    // 判断当前期数是否存在
+    async validatePeriods() {
+      this.loading = true
+      let params = {
+        periods: this.periods
+      }
+      try {
+        const result = await AllIndexModel.validatePeriods(params)
+        if (result.code == '0000') {
+          this.$notify({ title: '成功', message: result.message, type: 'success' })
+          this.noCommit = false
+        } else {
+          this.$notify({ title: '警告', message: result.message, type: 'warning' })
+          this.noCommit = true
+        }
+      } catch (error) {
+        this.$message.error('调用期数校验API异常')
+      }
+      this.loading = false
+    },
+    // 强制更新查询参数
+    orderNoChange() {
+      this.$forceUpdate()
+      this.noCommit = true
+      if (this.periods == null) {
+        return
+      }
+      this.periods = this.periods.replace(/[^\d]/g, '').replace(/^0{1,}/g, '')
+      if (this.periods != '') {
+        this.noVali = false
+      } else {
+        this.noCommit = true
+        this.noVali = true
+      }
     },
   },
 }
