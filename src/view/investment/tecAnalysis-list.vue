@@ -56,17 +56,12 @@
 
 <script>
 import { TecAnalysisModel } from '../../model/tecAnalysis'
-import UploadImgs from '../../component/base/upload-image/index'
 
 export default {
-  name: 'List',
-  components: { UploadImgs },
 
   // 页面数据缓存区
   data() {
     return {
-      // 详情页面弹出标识 true-弹出  false-关闭
-      showDialog: false,
       // 查询条件股票代码的默认值
       code: '',
       // 查询条件股票名称的默认值
@@ -129,7 +124,6 @@ export default {
         this.$message.error('调用技术分析指标查询API异常')
       }
       // 重置当前页数，防止从第二页查询时，再点击查询按钮，页数会传输错误
-      this.pageParams.page = 1
       this.loading = false
     },
      // 强制更新查询参数

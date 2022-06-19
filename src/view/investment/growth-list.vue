@@ -20,7 +20,8 @@
       </el-form>
 
       <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
-      <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="queryList('query')" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="queryList('byCode')" :loading="loading">关联核心指标查询</el-button>
     </div>
 
     <div class="table-container">
@@ -267,20 +268,21 @@ export default {
   // 方法区
   methods: {
     // 点击查询按钮触发事件
-    async queryList() {
+    async queryList(flag) {
       // 重置当前页数，防止输入查询条件时，页码传值错误
       this.pageParams.page = 1
       this.curPage = 1
-      await this.getGrowthIndexList()
+      await this.getGrowthIndexList(flag)
     },
     // 获取财务分析指标列表
-    async getGrowthIndexList() {
+    async getGrowthIndexList(flag) {
       this.loading = true
       let params = {
         code: this.code,
         codeName: this.codeName,
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
+        flag: flag
       }
       try {
         const result = await GrowthModel.getGrowthIndexList(params)

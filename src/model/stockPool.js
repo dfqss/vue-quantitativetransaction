@@ -29,6 +29,15 @@ class StockPool {
     })
   }
 
+  // 批量插入股票池数据
+  static async batchDeleteStockPool(data) {
+    return _axios({
+      method: 'post',
+      url: 'investmentV1/stockPool/batchDeleteStockPool',
+      data,
+    })
+  }
+
 }
 
 export { StockPool as StockPoolModel }

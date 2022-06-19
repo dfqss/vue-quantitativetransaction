@@ -21,12 +21,24 @@
 
       <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
       <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="batchDeleteStockPool" :loading="loading">移出股票池</el-button>
     </div>
 
-    <div class="table-container">
-      <el-table :data="dataList" border highlight-current-row :cell-style="{ 'text-align': 'center' }">
+     <div class="table-container">
+      <el-table
+        :data="dataList"
+        border
+        highlight-current-row
+        :cell-style="{ 'text-align': 'center' }"
+        ref="multipleTable"
+        style="width: 100%"
+        tooltip-effect="dark"
+        :row-key="rowKeyInit"
+        @selection-change="handleSelectionChange"
+      >
+        <el-table-column type="selection" :selectable="selectInit" reserve-selection align="center" width="55" />
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
-        <el-table-column label="股票代码" prop="code" />
+        <el-table-column label="股票代码" prop="code"/>
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="资本市场指标" prop="capitalMarket" />
         <el-table-column label="期数" prop="periods" />
@@ -89,6 +101,8 @@ export default {
       loading: false,
       // 页签标题
       dialogTitle: '',
+      // 选项值
+      multipleSelection: [],
       // 分页参数
       pageParams: {
         // 页码
@@ -143,6 +157,62 @@ export default {
         this.$message.error('调用股票池查询API异常')
       }
       this.loading = false
+    },
+     // 批量删除股票池数据
+    async batchDeleteStockPool() {
+      this.loading = true
+      console.log(this.multipleSelection)
+      if(this.multipleSelection == null || this.multipleSelection.length == 0) {
+        this.$notify.info({title: '提示', message: '请选择你要删除的股票信息'});
+        this.loading = false
+        return
+      }
+      let params = {
+        deleteData: this.multipleSelection,
+      }
+      try {
+        const result = await StockPoolModel.batchDeleteStockPool(params)
+        await this.getStockPoolList()
+        if (result.code == '0000') {
+          this.$notify({ title: '成功', message: result.message, type: 'success'});
+        } else {
+          this.$message.error(result.message)
+        }
+      } catch (error) {
+        this.$message.error('调用股票池批量删除API异常')
+      }
+      // 调用服务以后，需要把勾选清除掉
+      this.$refs.multipleTable.clearSelection()
+      this.loading = false
+      this.getCoreIndexList()
+    },
+    // row-key定义
+    rowKeyInit(row) {
+      return row.code
+    },
+    // 多选
+    handleSelectionChange(val) {
+      this.multipleSelection = val
+      // this.$emit(
+      //   'batchInsertCoreIndex',
+      //   val.map(item => {
+      //     return {
+      //       id: item.code,
+      //       defectStatus: item.defectStatus,
+      //     }
+      //   }),
+      // )
+    },
+    // 限制表格勾选，勾选规则:需要是同一类型的数据
+    selectInit(row) {
+      // 限制逻辑，返回true则为可勾选，反之则禁止勾选
+      let judge = true
+      // if (this.multipleSelection.length != 0) {
+      //   judge = this.multipleSelection.some(item => {
+      //     return item.code === row.code
+      //   })
+      // }
+      return !(row.inPoolStatus == 'in')
     },
      // 单元格编辑
     handleEdit(self, index, row) {
