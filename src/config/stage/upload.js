@@ -3,7 +3,7 @@ const uploadRouter = {
     title: '文件上传',
     type: 'folder',
     icon: 'iconfont icon-pinglun',
-    order: 4,
+    order: 8,
     inNav: true,
     children: [
       {

@@ -1,10 +1,14 @@
 import adminConfig from './admin'
-import bookConfig from './book' // 引入图书管理路由文件
+// import bookConfig from './book'
+// import contentRouter from './content'
 import pluginsConfig from './plugin'
 import Utils from '@/lin/util/util'
-import contentRouter from './content'
 import investmentRouter from './investment'
 import uploadRouter from './upload'
+import analysisRouter from './analysis'
+import stockpoolRouter from './stockpool'
+import tecanalysisRouter from './tecanalysis'
+import loopbackRouter from './loopback'
 
 // eslint-disable-next-line import/no-mutable-exports
 let homeRouter = [
@@ -51,7 +55,11 @@ let homeRouter = [
   // bookConfig,
   // contentRouter,
   investmentRouter,
-  uploadRouter
+  uploadRouter,
+  analysisRouter,
+  stockpoolRouter,
+  tecanalysisRouter,
+  loopbackRouter,
 ]
 
 const plugins = [...pluginsConfig]
