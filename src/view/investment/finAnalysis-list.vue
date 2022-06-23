@@ -261,6 +261,8 @@ export default {
       total: 0,
       // 当前页数
       curPage: 0,
+      // 查询标识
+      flag: '',
     }
   },
   // 生命周期函数
@@ -271,20 +273,22 @@ export default {
   methods: {
     // 点击查询按钮触发事件
     async queryList(flag) {
+      // 点击查询按钮时，重置flag值
+      this.flag = flag
       // 重置当前页数，防止输入查询条件时，页码传值错误
       this.pageParams.page = 1
       this.curPage = 1
-      await this.getFinAnalysisIndexList(flag)
+      await this.getFinAnalysisIndexList()
     },
     // 获取财务分析指标列表
-    async getFinAnalysisIndexList(flag) {
+    async getFinAnalysisIndexList() {
       this.loading = true
-      let params = {
+      const params = {
         code: this.code,
         codeName: this.codeName,
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
-        flag: flag
+        flag: this.flag,
       }
       try {
         const result = await FinAnalysisModel.getFinAnalysisIndexList(params)
@@ -318,7 +322,9 @@ export default {
       this.temp.code = row.code
       this.temp.code_name = row.code_name
       this.temp.roe_basic = row.roe_basic !== null && row.roe_basic !== undefined ? row.roe_basic : this.temp.roe_basic
-      this.temp.gross_profit_margin = row.gross_profit_margin !== null && row.gross_profit_margin !== undefined ? row.gross_profit_margin : this.temp.gross_profit_margin
+      this.temp.gross_profit_margin = row.gross_profit_margin !== null && row.gross_profit_margin !== undefined
+        ? row.gross_profit_margin
+        : this.temp.gross_profit_margin
       this.temp.tot_ope_rev = row.tot_ope_rev !== null && row.tot_ope_rev !== undefined ? row.tot_ope_rev : this.temp.tot_ope_rev
       this.temp.goodwill = row.goodwill !== null && row.goodwill !== undefined ? row.goodwill : this.temp.goodwill
       this.temp.debt_to_assets = row.debt_to_assets !== null && row.debt_to_assets !== undefined ? row.debt_to_assets : this.temp.debt_to_assets
@@ -329,11 +335,15 @@ export default {
       this.temp.bps = row.bps !== null && row.bps !== undefined ? row.bps : this.temp.bps
       this.temp.roe_avg = row.roe_avg !== null && row.roe_avg !== undefined ? row.roe_avg : this.temp.roe_avg
       this.temp.roa = row.roa !== null && row.roa !== undefined ? row.roa : this.temp.roa
-      this.temp.net_profit_margin = row.net_profit_margin !== null && row.net_profit_margin !== undefined ? row.net_profit_margin : this.temp.net_profit_margin
+      this.temp.net_profit_margin = row.net_profit_margin !== null && row.net_profit_margin !== undefined
+        ? row.net_profit_margin
+        : this.temp.net_profit_margin
       this.temp.ope_rev = row.ope_rev !== null && row.ope_rev !== undefined ? row.ope_rev : this.temp.ope_rev
       this.temp.r_and_d_costs = row.r_and_d_costs !== null && row.r_and_d_costs !== undefined ? row.r_and_d_costs : this.temp.r_and_d_costs
       this.temp.segment_sales = row.segment_sales !== null && row.segment_sales !== undefined ? row.segment_sales : this.temp.segment_sales
-      this.temp.cash_to_current_debt = row.cash_to_current_debt !== null && row.cash_to_current_debt !== undefined ? row.cash_to_current_debt : this.temp.cash_to_current_debt
+      this.temp.cash_to_current_debt = row.cash_to_current_debt !== null && row.cash_to_current_debt !== undefined
+        ? row.cash_to_current_debt
+        : this.temp.cash_to_current_debt
       this.temp.or_ps = row.or_ps !== null && row.or_ps !== undefined ? row.or_ps : this.temp.or_ps
       this.temp.cf_ps = row.cf_ps !== null && row.cf_ps !== undefined ? row.cf_ps : this.temp.cf_ps
     },

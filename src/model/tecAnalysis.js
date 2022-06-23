@@ -9,6 +9,15 @@ class TecAnalysis {
       data,
     })
   }
+
+  // 根据code值更新LON和buying失败
+  static async updateTecAnalysisIndexByCode(data) {
+    return _axios({
+      method: 'post',
+      url: 'investmentV1/tecAnalysisIndex/updateTecAnalysisIndexByCode',
+      data,
+    })
+  }
 }
 
 export { TecAnalysis as TecAnalysisModel }

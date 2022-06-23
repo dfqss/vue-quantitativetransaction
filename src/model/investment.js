@@ -24,6 +24,15 @@ class Investment {
       data,
     })
   }
+
+  // 根据code删除核心指标列表
+  static async deleteCoreIndexByCode(data) {
+    return _axios({
+      method: 'post',
+      url: 'investmentV1/coreIndex/deleteCoreIndexByCode',
+      data,
+    })
+  }
 }
 
 export { Investment as InvestmentModel }

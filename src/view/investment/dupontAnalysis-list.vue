@@ -81,6 +81,8 @@ export default {
         page: 1,
         // 每页条数
         pagesize: 10,
+        // 查询标识
+        flag: '',
       },
       // 结果列表
       dataList: [],
@@ -98,20 +100,21 @@ export default {
   methods: {
     // 点击查询按钮触发事件
     async queryList(flag) {
+      this.flag = flag
       // 重置当前页数，防止输入查询条件时，页码传值错误
       this.pageParams.page = 1
       this.curPage = 1
-      await this.getDupontAnalysisIndexList(flag)
+      await this.getDupontAnalysisIndexList()
     },
     // 获取财务分析指标列表
-    async getDupontAnalysisIndexList(flag) {
+    async getDupontAnalysisIndexList() {
       this.loading = true
-      let params = {
+      const params = {
         code: this.code,
         codeName: this.codeName,
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
-        flag: flag
+        flag: this.flag,
       }
       try {
         const result = await DupontAnalysisModel.getDupontAnalysisIndexList(params)
