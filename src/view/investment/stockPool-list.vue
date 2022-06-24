@@ -24,7 +24,7 @@
       <el-button type="primary" @click="batchDeleteStockPool" :loading="loading">移出股票池</el-button>
     </div>
 
-     <div class="table-container">
+    <div class="table-container">
       <el-table
         :data="dataList"
         border
@@ -38,31 +38,28 @@
       >
         <el-table-column type="selection" :selectable="selectInit" reserve-selection align="center" width="55" />
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
-        <el-table-column label="股票代码" prop="code"/>
+        <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="资本市场指标" prop="capitalMarket" />
         <el-table-column label="期数" prop="periods" />
         <el-table-column label="行业名称(申万)" prop="industry_sw" />
-         <!-- 单元格编辑 -->
-        <el-table-column
-            label="备注"
-            prop="remark"
-            show-overflow-tooltip
-          >
-         <template slot-scope="props">
-              <div v-if="!props.row.editFlag" class="table-edit">
-                <div @click="handleEdit(props.row)" class="content">{{ props.row.remark }}</div>
-                <div class="cell-icon" @click="handleCellEdit(props.row)"><i class="el-icon-edit"></i></div>
+        <!-- 单元格编辑 -->
+        <el-table-column label="备注" prop="remark" show-overflow-tooltip>
+          <template slot-scope="props">
+            <div v-if="!dataList[props.$index].editFlag" class="table-edit">
+              <div @click="handleCellEdit(props)" class="content">{{ props.row.remark }}</div>
+              <div class="cell-icon" @click="handleCellEdit(props)"><i class="el-icon-edit"></i></div>
+            </div>
+            <div v-else class="table-edit">
+              <el-input v-model="props.row.remark" placeholder></el-input>
+              <div class="cell-icon-edit">
+                <div class="cell-save" @click="handleCellSave(props)"><i class="el-icon-check"></i></div>
+                <div class="cell-cancel" @click="handleCellCancel(props)"><i class="el-icon-close"></i></div>
               </div>
-              <div v-else class="table-edit">
-                <el-input v-model="props.row.remark" placeholder></el-input>
-                <div class="cell-icon-edit">
-                  <div class="cell-save" @click="handleCellSave(props.row)"><i class="el-icon-check"></i></div>
-                  <div class="cell-cancel" @click="handleCellCancel(props.row)"><i class="el-icon-close"></i></div>
-                </div>
-              </div>
-            </template>
+            </div>
+          </template>
         </el-table-column>
+
         <el-table-column label="创建日期" prop="create_time" />
       </el-table>
 
@@ -93,6 +90,7 @@ export default {
   name: 'List',
   data() {
     return {
+      tempEditRemark: '',
       // 查询条件股票代码的默认值
       code: '',
       // 查询条件股票名称的默认值
@@ -116,9 +114,6 @@ export default {
       total: 0,
       // 当前页数
       curPage: 0,
-      // 单元格编辑相关
-      editRow: 0,
-      showTooltip: true,
     }
   },
   // 生命周期函数
@@ -158,12 +153,12 @@ export default {
       }
       this.loading = false
     },
-     // 批量删除股票池数据
+    // 批量删除股票池数据
     async batchDeleteStockPool() {
       this.loading = true
       console.log(this.multipleSelection)
-      if(this.multipleSelection == null || this.multipleSelection.length == 0) {
-        this.$notify.info({title: '提示', message: '请选择你要删除的股票信息'});
+      if (this.multipleSelection == null || this.multipleSelection.length == 0) {
+        this.$notify.info({ title: '提示', message: '请选择你要删除的股票信息' })
         this.loading = false
         return
       }
@@ -174,7 +169,7 @@ export default {
         const result = await StockPoolModel.batchDeleteStockPool(params)
         await this.getStockPoolList()
         if (result.code == '0000') {
-          this.$notify({ title: '成功', message: result.message, type: 'success'});
+          this.$notify({ title: '成功', message: result.message, type: 'success' })
         } else {
           this.$message.error(result.message)
         }
@@ -214,46 +209,47 @@ export default {
       // }
       return !(row.inPoolStatus == 'in')
     },
-     // 单元格编辑
-    handleEdit(self, index, row) {
-      self.handleCellEdit(row)
-      console.log(index, row)
-    }, 
-    handleCellEdit(row) {
-      row.editFlag = true // eslint-disable-line
+    // 单元格编辑
+    handleCellEdit(scope) {
+      this.dataList[scope.$index].editFlag = true
+      this.$set(this.dataList, scope.$index, scope.row)
       this.tempEditRemark = row.remark
-      this.editRow++
     },
-    handleCellSave(row) {
-      row.editFlag = false // eslint-disable-line
-      setTimeout(() => {
-        this.editRow--
-        this.updateStockPoolByCode(row)
-        this.$message({
-          type: 'success',
-          message: '修改成功',
-        })
-      }, 1000)
+    // 将单元格编辑的内容保存到数据库
+    async handleCellSave(scope) {
+      this.dataList[scope.$index].editFlag = false
+      this.$set(this.dataList, scope.$index, scope.row)
+      // setTimeout(() => {}, 1000) 一秒后执行内部逻辑
+      this.updateStockPoolByCode(row)
+      this.$message({ type: 'success', message: '修改成功' })
+      // await this.getStockPoolList()
     },
-    handleCellCancel(row) {
-      row.editFlag = false // eslint-disable-line
-      console.log(this.tempEditRemark)
-      row.remark = this.tempEditRemark // eslint-disable-line
-      this.editRow--
+    // 取消编辑
+    async handleCellCancel(scope) {
+      this.dataList[scope.$index].editFlag = false
+      this.$set(this.dataList, scope.$index, scope.row)
+      row.remark = this.tempEditRemark
+      // await this.getStockPoolList()
     },
-    async updateStockPoolByCode(row){
-      this.loading = true
+
+    //点击单元格
+    cellClick(row, index) {
+      row.isSelected = !row.isSelected
+      this.$set(this.dataList, index, row)
+    },
+
+
+    // 股票池更新按钮
+    async updateStockPoolByCode(row) {
       const params = {
         code: row.code,
         remark: row.remark,
       }
-      console.log(params)
-       try {
+      try {
         const result = await StockPoolModel.updateStockPoolByCode(params)
       } catch (error) {
         this.$message.error('修改股票备注API异常')
       }
-      this.loading = false
     },
     // 强制更新查询参数
     orderNoChange() {
@@ -294,6 +290,43 @@ export default {
   }
   .table-container {
     padding: 0 40px 20px 40px;
+  }
+  .table-edit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    .content {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cell-icon {
+      cursor: pointer;
+      color: #3963bc;
+      font-size: 16px;
+    }
+
+    .cell-icon-edit {
+      display: flex;
+      margin-left: 20px;
+      width: 50px;
+      justify-content: space-between;
+
+      .cell-cancel {
+        cursor: pointer;
+        color: #3963bc;
+        font-size: 16px;
+      }
+
+      .cell-save {
+        cursor: pointer;
+        color: #3963bc;
+        font-size: 16px;
+        margin-right: -20px;
+      }
+    }
   }
 }
 </style>

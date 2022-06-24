@@ -29,7 +29,7 @@ class StockPool {
     })
   }
 
-  // 批量插入股票池数据
+  // 批量删除股票池数据
   static async batchDeleteStockPool(data) {
     return _axios({
       method: 'post',
