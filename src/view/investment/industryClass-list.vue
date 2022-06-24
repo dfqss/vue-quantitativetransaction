@@ -59,7 +59,6 @@
 import { IndustryClassModel } from '../../model/industryClass'
 
 export default {
-
   // 页面数据缓存区
   data() {
     return {
@@ -84,6 +83,8 @@ export default {
       total: 0,
       // 当前页数
       curPage: 0,
+      // 查询标识
+      flag: '',
     }
   },
 
@@ -96,20 +97,22 @@ export default {
   methods: {
     // 点击查询按钮触发事件
     async queryList(flag) {
+      // 点击查询按钮时，重置flag值
+      this.flag = flag
       // 重置当前页数，防止输入查询条件时，页码传值错误
       this.pageParams.page = 1
       this.curPage = 1
-      await this.getIndustryClassList(flag)
+      await this.getIndustryClassList()
     },
     // 获取财务分析指标列表
-    async getIndustryClassList(flag) {
+    async getIndustryClassList() {
       this.loading = true
-      let params = {
+      const params = {
         code: this.code,
         codeName: this.codeName,
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
-        flag: flag
+        flag: this.flag,
       }
       try {
         const result = await IndustryClassModel.getIndustryClassList(params)
@@ -141,7 +144,7 @@ export default {
       // 重置当前页数，防止从第二页查询时，再点击查询按钮，页数会传输错误
       this.loading = false
     },
-     // 强制更新查询参数
+    // 强制更新查询参数
     orderNoChange() {
       this.$forceUpdate()
     },

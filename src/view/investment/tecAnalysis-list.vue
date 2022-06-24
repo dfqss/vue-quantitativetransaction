@@ -32,6 +32,38 @@
         <el-table-column label="向上有效突破均线" prop="breakout_ma" />
         <el-table-column label="向下有效突破均线" prop="breakdown_ma" />
         <el-table-column label="均线多空头排列看涨看跌" prop="bull_bear_ma" />
+        <!-- 单元格编辑 -->
+        <el-table-column label="LON" prop="LON" show-overflow-tooltip>
+          <template slot-scope="props">
+            <div v-if="!props.row.editFlag" class="table-edit">
+              <div @click="handleEdit(props.row)" class="content">{{ props.row.LON }}</div>
+              <div class="cell-icon" @click="handleCellEdit(props.row)"><i class="el-icon-edit"></i></div>
+            </div>
+            <div v-else class="table-edit">
+              <el-input v-model="props.row.LON" placeholder></el-input>
+              <div class="cell-icon-edit">
+                <div class="cell-save" @click="handleCellSave(props.row)"><i class="el-icon-check"></i></div>
+                <div class="cell-cancel" @click="handleCellCancel(props.row)"><i class="el-icon-close"></i></div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <!-- 单元格编辑 -->
+        <el-table-column label="买入" prop="buying" show-overflow-tooltip>
+          <template slot-scope="props">
+            <div v-if="!props.row.editFlag" class="table-edit">
+              <div @click="handleEdit(props.row)" class="content">{{ props.row.buying }}</div>
+              <div class="cell-icon" @click="handleCellEdit(props.row)"><i class="el-icon-edit"></i></div>
+            </div>
+            <div v-else class="table-edit">
+              <el-input v-model="props.row.buying" placeholder></el-input>
+              <div class="cell-icon-edit">
+                <div class="cell-save" @click="handleCellSave(props.row)"><i class="el-icon-check"></i></div>
+                <div class="cell-cancel" @click="handleCellCancel(props.row)"><i class="el-icon-close"></i></div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
       </el-table>
 
       <!-- 上下页调整按钮 -->
@@ -58,7 +90,6 @@
 import { TecAnalysisModel } from '../../model/tecAnalysis'
 
 export default {
-
   // 页面数据缓存区
   data() {
     return {
@@ -83,6 +114,9 @@ export default {
       total: 0,
       // 当前页数
       curPage: 0,
+      // 单元格编辑相关
+      editRow: 0,
+      showTooltip: true,
     }
   },
 
@@ -93,7 +127,7 @@ export default {
 
   // 方法区
   methods: {
-   // 点击查询按钮触发事件
+    // 点击查询按钮触发事件
     async queryList() {
       // 重置当前页数，防止输入查询条件时，页码传值错误
       this.pageParams.page = 1
@@ -103,7 +137,7 @@ export default {
     // 获取财务分析指标列表
     async getTecAnalysisIndexList() {
       this.loading = true
-      let params = {
+      const params = {
         code: this.code,
         codeName: this.codeName,
         pageNum: this.pageParams.page,
@@ -126,7 +160,51 @@ export default {
       // 重置当前页数，防止从第二页查询时，再点击查询按钮，页数会传输错误
       this.loading = false
     },
-     // 强制更新查询参数
+    // 单元格编辑
+    handleEdit(self, index, row) {
+      self.handleCellEdit(row)
+      console.log(index, row)
+    },
+    handleCellEdit(row) {
+      row.editFlag = true // eslint-disable-line
+      this.tempEditRemark = row.remark
+      this.editRow++
+    },
+    handleCellSave(row) {
+      row.editFlag = false // eslint-disable-line
+      setTimeout(() => {
+        this.editRow--
+        this.updateTecAnalysisIndexByCode(row)
+        this.$message({
+          type: 'success',
+          message: '修改成功',
+        })
+      }, 1000)
+    },
+    handleCellCancel(row) {
+      row.editFlag = false // eslint-disable-line
+      console.log(this.tempEditRemark)
+      row.remark = this.tempEditRemark // eslint-disable-line
+      this.editRow--
+    },
+    async updateTecAnalysisIndexByCode(row) {
+      this.loading = true
+      const params = {
+        date: {
+          code: row.code,
+          LON: row.LON,
+          buying: row.buying,
+        },
+      }
+      console.log(params)
+      try {
+        const result = await TecAnalysisModel.updateTecAnalysisIndexByCode(params)
+      } catch (error) {
+        this.$message.error('修改LON与是否买入API异常')
+      }
+      this.loading = false
+    },
+    // 强制更新查询参数
     orderNoChange() {
       this.$forceUpdate()
     },
@@ -165,6 +243,39 @@ export default {
   }
   .table-container {
     padding: 0 40px 20px 40px;
+  }
+  .table-edit {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    .content {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .cell-icon {
+      cursor: pointer;
+      color: #3963bc;
+      font-size: 16px;
+    }
+    .cell-icon-edit {
+      display: flex;
+      margin-left: 20px;
+      width: 50px;
+      justify-content: space-between;
+      .cell-cancel {
+        cursor: pointer;
+        color: #3963bc;
+        font-size: 16px;
+      }
+      .cell-save {
+        cursor: pointer;
+        color: #3963bc;
+        font-size: 16px;
+        margin-right: -20px;
+      }
+    }
   }
 }
 </style>

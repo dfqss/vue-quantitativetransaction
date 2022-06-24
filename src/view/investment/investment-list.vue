@@ -38,7 +38,7 @@
       >
         <el-table-column type="selection" :selectable="selectInit" reserve-selection align="center" width="55" />
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
-        <el-table-column label="股票代码" prop="code" /> 
+        <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="资本市场指标" prop="capitalMarket" />
         <el-table-column label="是否新股" prop="isNewShares" width="100">
@@ -59,6 +59,12 @@
         </el-table-column>
         <el-table-column label="计算日期" prop="calDate" />
         <el-table-column label="入池状态" v-if="false" prop="inPoolStatus" />
+        <el-table-column label="操作">
+          <template slot-scope="props">
+            <el-button type="danger" @click="deleteCoreIndexByCode(props.row)">删除</el-button>
+          </template>
+          <!-- <el-button type="primary" @click="deleteCoreIndexByCode()" :loading="loading">删除</el-button> -->
+        </el-table-column>
       </el-table>
 
       <!-- 上下页调整按钮 -->
@@ -130,7 +136,7 @@ export default {
     // 事件：获取核心指数列表
     async getCoreIndexList() {
       this.loading = true
-      let params = {
+      const params = {
         code: this.code,
         codeName: this.codeName,
         pageNum: this.pageParams.page,
@@ -155,18 +161,18 @@ export default {
     // 批量插入股票池数据
     async batchInsertStockPool() {
       this.loading = true
-      if(this.multipleSelection == null || this.multipleSelection.length == 0) {
-        this.$notify.info({title: '提示', message: '请选择你要入池的股票信息'});
+      if (this.multipleSelection == null || this.multipleSelection.length == 0) {
+        this.$notify.info({ title: '提示', message: '请选择你要入池的股票信息' })
         this.loading = false
         return
       }
-      let params = {
+      const params = {
         insertData: this.multipleSelection,
       }
       try {
         const result = await StockPoolModel.batchInsertStockPool(params)
         if (result.code == '0000') {
-          this.$notify({ title: '成功', message: result.message, type: 'success'});
+          this.$notify({ title: '成功', message: result.message, type: 'success' })
         } else {
           this.$message.error(result.message)
         }
@@ -177,6 +183,28 @@ export default {
       this.$refs.multipleTable.clearSelection()
       this.loading = false
       this.getCoreIndexList()
+    },
+    // 根据code值删除核心指标
+    async deleteCoreIndexByCode(data) {
+      // 弹出确认框,确定的时候发送ajax请求执行删除操作
+      if (confirm('确定要删除吗?')) {
+        this.loading = true
+        const params = {
+          date: data,
+        }
+        try {
+          const result = await InvestmentModel.deleteCoreIndexByCode(params)
+          if (result.code == '0000') {
+            this.$notify({ title: '成功', message: result.message, type: 'success' })
+          } else {
+            this.$message.error(result.message)
+          }
+        } catch (error) {
+          this.$message.error('根据code值删除核心指标')
+        }
+        this.loading = false
+        this.getCoreIndexList()
+      }
     },
     // 强制更新查询参数
     orderNoChange() {
@@ -202,7 +230,7 @@ export default {
     // 限制表格勾选，勾选规则:需要是同一类型的数据
     selectInit(row) {
       // 限制逻辑，返回true则为可勾选，反之则禁止勾选
-      let judge = true
+      const judge = true
       // if (this.multipleSelection.length != 0) {
       //   judge = this.multipleSelection.some(item => {
       //     return item.code === row.code
