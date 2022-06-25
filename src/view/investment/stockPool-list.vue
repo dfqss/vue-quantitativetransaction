@@ -188,57 +188,31 @@ export default {
     // 多选
     handleSelectionChange(val) {
       this.multipleSelection = val
-      // this.$emit(
-      //   'batchInsertCoreIndex',
-      //   val.map(item => {
-      //     return {
-      //       id: item.code,
-      //       defectStatus: item.defectStatus,
-      //     }
-      //   }),
-      // )
     },
     // 限制表格勾选，勾选规则:需要是同一类型的数据
     selectInit(row) {
       // 限制逻辑，返回true则为可勾选，反之则禁止勾选
-      let judge = true
-      // if (this.multipleSelection.length != 0) {
-      //   judge = this.multipleSelection.some(item => {
-      //     return item.code === row.code
-      //   })
-      // }
       return !(row.inPoolStatus == 'in')
     },
     // 单元格编辑
     handleCellEdit(scope) {
       this.dataList[scope.$index].editFlag = true
       this.$set(this.dataList, scope.$index, scope.row)
-      this.tempEditRemark = row.remark
+      this.tempEditRemark = scope.row.remark
     },
     // 将单元格编辑的内容保存到数据库
     async handleCellSave(scope) {
       this.dataList[scope.$index].editFlag = false
       this.$set(this.dataList, scope.$index, scope.row)
       // setTimeout(() => {}, 1000) 一秒后执行内部逻辑
-      this.updateStockPoolByCode(row)
-      this.$message({ type: 'success', message: '修改成功' })
-      // await this.getStockPoolList()
+      await this.updateStockPoolByCode(scope.row)
     },
     // 取消编辑
-    async handleCellCancel(scope) {
+    handleCellCancel(scope) {
       this.dataList[scope.$index].editFlag = false
       this.$set(this.dataList, scope.$index, scope.row)
-      row.remark = this.tempEditRemark
-      // await this.getStockPoolList()
+      scope.row.remark = this.tempEditRemark
     },
-
-    //点击单元格
-    cellClick(row, index) {
-      row.isSelected = !row.isSelected
-      this.$set(this.dataList, index, row)
-    },
-
-
     // 股票池更新按钮
     async updateStockPoolByCode(row) {
       const params = {
@@ -247,6 +221,11 @@ export default {
       }
       try {
         const result = await StockPoolModel.updateStockPoolByCode(params)
+        if (result.code == '0000') {
+          this.$notify({ title: '成功', message: result.message, type: 'success' })
+        } else {
+          this.$message.error(result.message)
+        }
       } catch (error) {
         this.$message.error('修改股票备注API异常')
       }

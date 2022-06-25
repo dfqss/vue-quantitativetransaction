@@ -230,7 +230,7 @@ export default {
     // 限制表格勾选，勾选规则:需要是同一类型的数据
     selectInit(row) {
       // 限制逻辑，返回true则为可勾选，反之则禁止勾选
-      const judge = true
+      // const judge = true
       // if (this.multipleSelection.length != 0) {
       //   judge = this.multipleSelection.some(item => {
       //     return item.code === row.code
