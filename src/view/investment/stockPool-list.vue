@@ -19,9 +19,8 @@
         </el-form-item>
       </el-form>
 
-      <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
       <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
-      <el-button type="primary" @click="batchDeleteStockPool" :loading="loading">移出股票池</el-button>
+      <el-button type="primary" @click="batchDeleteStockPool" :loading="loading" v-permission="'移出股票池'">移出股票池</el-button>
     </div>
 
     <div class="table-container">
@@ -48,9 +47,9 @@
           <template slot-scope="props">
             <div v-if="!dataList[props.$index].editFlag" class="table-edit">
               <div @click="handleCellEdit(props)" class="content">{{ props.row.remark }}</div>
-              <div class="cell-icon" @click="handleCellEdit(props)"><i class="el-icon-edit"></i></div>
+              <div class="cell-icon" @click="handleCellEdit(props)" v-permission="'修改股票池备注'"><i class="el-icon-edit"></i></div>
             </div>
-            <div v-else class="table-edit">
+            <div v-else class="table-edit" @mouseleave="handleCellCancel(props)">
               <el-input v-model="props.row.remark" placeholder></el-input>
               <div class="cell-icon-edit">
                 <div class="cell-save" @click="handleCellSave(props)"><i class="el-icon-check"></i></div>
@@ -221,9 +220,7 @@ export default {
       }
       try {
         const result = await StockPoolModel.updateStockPoolByCode(params)
-        if (result.code == '0000') {
-          this.$notify({ title: '成功', message: result.message, type: 'success' })
-        } else {
+        if (result.code == '9999') {
           this.$message.error(result.message)
         }
       } catch (error) {

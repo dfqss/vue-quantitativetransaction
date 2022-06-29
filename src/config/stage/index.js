@@ -31,7 +31,7 @@ let homeRouter = [
     inNav: true,
     icon: 'iconfont icon-rizhiguanli',
     order: 2,
-    permission: ['查询所有日志'],
+    permission: ['查询日志'],
   },
   {
     title: '个人中心',
