@@ -35,31 +35,31 @@
         <!-- 单元格编辑 -->
         <el-table-column label="LON" prop="LON" show-overflow-tooltip>
           <template slot-scope="props">
-            <div v-if="!props.row.editFlag" class="table-edit">
-              <div @click="handleEdit(props.row)" class="content">{{ props.row.LON }}</div>
-              <div class="cell-icon" @click="handleCellEdit(props.row)"><i class="el-icon-edit"></i></div>
+            <div v-if="!dataList[props.$index].lonEditFlag" class="table-edit">
+              <div @click="handleCellEdit(props, 'LON')" class="content">{{ props.row.LON }}</div>
+              <div class="cell-icon" @click="handleCellEdit(props, 'LON')" v-permission="'编辑技术分析指标'"><i class="el-icon-edit"></i></div>
             </div>
-            <div v-else class="table-edit">
+            <div v-else class="table-edit" @mouseleave="handleCellCancel(props, 'LON')">
               <el-input v-model="props.row.LON" placeholder></el-input>
               <div class="cell-icon-edit">
-                <div class="cell-save" @click="handleCellSave(props.row)"><i class="el-icon-check"></i></div>
-                <div class="cell-cancel" @click="handleCellCancel(props.row)"><i class="el-icon-close"></i></div>
+                <div class="cell-save" @click="handleCellSave(props, 'LON')"><i class="el-icon-check"></i></div>
+                <div class="cell-cancel" @click="handleCellCancel(props, 'LON')"><i class="el-icon-close"></i></div>
               </div>
             </div>
           </template>
         </el-table-column>
         <!-- 单元格编辑 -->
-        <el-table-column label="买入" prop="buying" show-overflow-tooltip>
+        <el-table-column label="是否买入" prop="buying" show-overflow-tooltip>
           <template slot-scope="props">
-            <div v-if="!props.row.editFlag" class="table-edit">
-              <div @click="handleEdit(props.row)" class="content">{{ props.row.buying }}</div>
-              <div class="cell-icon" @click="handleCellEdit(props.row)"><i class="el-icon-edit"></i></div>
+            <div v-if="!dataList[props.$index].buyingEditFlag" class="table-edit">
+              <div @click="handleCellEdit(props, 'buying')" class="content">{{ props.row.buying }}</div>
+              <div class="cell-icon" @click="handleCellEdit(props, 'buying')" v-permission="'编辑技术分析指标'"><i class="el-icon-edit"></i></div>
             </div>
-            <div v-else class="table-edit">
+            <div v-else class="table-edit" @mouseleave="handleCellCancel(props, 'buying')">
               <el-input v-model="props.row.buying" placeholder></el-input>
               <div class="cell-icon-edit">
-                <div class="cell-save" @click="handleCellSave(props.row)"><i class="el-icon-check"></i></div>
-                <div class="cell-cancel" @click="handleCellCancel(props.row)"><i class="el-icon-close"></i></div>
+                <div class="cell-save" @click="handleCellSave(props, 'buying')"><i class="el-icon-check"></i></div>
+                <div class="cell-cancel" @click="handleCellCancel(props, 'buying')"><i class="el-icon-close"></i></div>
               </div>
             </div>
           </template>
@@ -93,6 +93,7 @@ export default {
   // 页面数据缓存区
   data() {
     return {
+      tempEditRemark: '',
       // 查询条件股票代码的默认值
       code: '',
       // 查询条件股票名称的默认值
@@ -161,34 +162,50 @@ export default {
       this.loading = false
     },
     // 单元格编辑
-    handleEdit(self, index, row) {
-      self.handleCellEdit(row)
-      console.log(index, row)
+    handleCellEdit(scope, type) {
+      if (type === 'LON') {
+        this.dataList[scope.$index].lonEditFlag = true
+      }
+      if (type === 'buying') {
+        this.dataList[scope.$index].buyingEditFlag = true
+      }
+      this.$set(this.dataList, scope.$index, scope.row)
+      if (type === 'LON') {
+        this.tempEditRemark = scope.row.LON
+      }
+      if (type === 'buying') {
+        this.tempEditRemark = scope.row.buying
+      }
     },
-    handleCellEdit(row) {
-      row.editFlag = true // eslint-disable-line
-      this.tempEditRemark = row.remark
-      this.editRow++
+    // 将单元格编辑的内容保存到数据库
+    async handleCellSave(scope, type) {
+      if (type === 'LON') {
+        this.dataList[scope.$index].lonEditFlag = false
+      }
+      if (type === 'buying') {
+        this.dataList[scope.$index].buyingEditFlag = false
+      }
+      this.$set(this.dataList, scope.$index, scope.row)
+      // setTimeout(() => {}, 1000) 一秒后执行内部逻辑
+      await this.updateTecAnalysisIndexByCode(scope.row)
     },
-    handleCellSave(row) {
-      row.editFlag = false // eslint-disable-line
-      setTimeout(() => {
-        this.editRow--
-        this.updateTecAnalysisIndexByCode(row)
-        this.$message({
-          type: 'success',
-          message: '修改成功',
-        })
-      }, 1000)
-    },
-    handleCellCancel(row) {
-      row.editFlag = false // eslint-disable-line
-      console.log(this.tempEditRemark)
-      row.remark = this.tempEditRemark // eslint-disable-line
-      this.editRow--
+    // 取消编辑
+    handleCellCancel(scope, type) {
+      if (type === 'LON') {
+        this.dataList[scope.$index].lonEditFlag = false
+      }
+      if (type === 'buying') {
+        this.dataList[scope.$index].buyingEditFlag = false
+      }
+      this.$set(this.dataList, scope.$index, scope.row)
+      if (type === 'LON') {
+        scope.row.LON = this.tempEditRemark
+      }
+      if (type === 'buying') {
+        scope.row.buying = this.tempEditRemark
+      }
     },
     async updateTecAnalysisIndexByCode(row) {
-      this.loading = true
       const params = {
         date: {
           code: row.code,
@@ -196,13 +213,14 @@ export default {
           buying: row.buying,
         },
       }
-      console.log(params)
       try {
         const result = await TecAnalysisModel.updateTecAnalysisIndexByCode(params)
+        if (result.code == '9999') {
+          this.$message.error(result.message)
+        }
       } catch (error) {
         this.$message.error('修改LON与是否买入API异常')
       }
-      this.loading = false
     },
     // 强制更新查询参数
     orderNoChange() {

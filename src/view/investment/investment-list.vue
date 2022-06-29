@@ -19,9 +19,8 @@
         </el-form-item>
       </el-form>
 
-      <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
       <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
-      <el-button type="primary" @click="batchInsertStockPool" :loading="loading">加入股票池</el-button>
+      <el-button type="primary" @click="batchInsertStockPool" :loading="loading" v-permission="'加入股票池'">加入股票池</el-button>
     </div>
 
     <div class="table-container">
@@ -64,7 +63,7 @@
         <el-table-column label="入池状态" v-if="false" prop="inPoolStatus" />
         <el-table-column label="操作">
           <template slot-scope="props">
-            <el-button type="danger" @click="deleteCoreIndexByCode(props.row)">删除</el-button>
+            <el-button type="danger" @click="deleteCoreIndexByCode(props.row)" v-permission="'删除投资标初选数据'">删除</el-button>
           </template>
           <!-- <el-button type="primary" @click="deleteCoreIndexByCode()" :loading="loading">删除</el-button> -->
         </el-table-column>
