@@ -21,6 +21,7 @@ let homeRouter = [
     inNav: true,
     icon: 'iconfont icon-iconset0103',
     order: 1,
+    permission: ['超级管理员独有权限'],
   },
   {
     title: '日志管理',
