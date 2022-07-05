@@ -17,6 +17,13 @@
             <el-input placeholder="请输入内容" size="medium" v-model="codeName" @input="orderNoChange"></el-input>
           </el-col>
         </el-form-item>
+
+        <!-- 当存在2个input时 :span加起来为48时，铺满赤道、为8时就是占1/6，其他以此类推 -->
+        <el-form-item label="行业分类">
+          <el-col :span="20">
+            <el-input placeholder="请输入内容" size="medium" v-model="industry_sw" @input="orderNoChange"></el-input>
+          </el-col>
+        </el-form-item>
       </el-form>
 
       <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
@@ -29,6 +36,7 @@
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
         <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="code_name" />
+        <el-table-column label="行业名称(申万)" prop="industry_sw" />
         <el-table-column label="净资产收益率ROE(加权)" prop="roe_basic" />
         <el-table-column label="销售毛利率" prop="gross_profit_margin" />
         <el-table-column label="营业总收入" prop="tot_ope_rev" />
@@ -220,6 +228,8 @@ export default {
       code: '',
       // 查询条件股票名称的默认值
       codeName: '',
+      // 查询条件行业分类的默认值
+      industry_sw: '',
       // 重载标识：用于防止接口重复调用，当后台接口没有返回时一直显示加载中，此时按钮无法被点击
       loading: false,
       // 页签标题
@@ -286,6 +296,7 @@ export default {
       const params = {
         code: this.code,
         codeName: this.codeName,
+        industry_sw: this.industry_sw,
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
         flag: this.flag,

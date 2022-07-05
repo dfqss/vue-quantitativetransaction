@@ -20,7 +20,8 @@
       </el-form>
 
       <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
-      <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="queryList('query')" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="queryList('byCode')" :loading="loading">关联股票池</el-button>
     </div>
 
     <div class="table-container">
@@ -118,6 +119,8 @@ export default {
       // 单元格编辑相关
       editRow: 0,
       showTooltip: true,
+      // 查询标识
+      flag: '',
     }
   },
 
@@ -129,7 +132,9 @@ export default {
   // 方法区
   methods: {
     // 点击查询按钮触发事件
-    async queryList() {
+    async queryList(flag) {
+       // 点击查询按钮时，重置flag值
+      this.flag = flag
       // 重置当前页数，防止输入查询条件时，页码传值错误
       this.pageParams.page = 1
       this.curPage = 1
@@ -143,6 +148,7 @@ export default {
         codeName: this.codeName,
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
+        flag: this.flag,
       }
       try {
         const result = await TecAnalysisModel.getTecAnalysisIndexList(params)
