@@ -1,6 +1,4 @@
 import adminConfig from './admin'
-// import bookConfig from './book'
-// import contentRouter from './content'
 import pluginsConfig from './plugin'
 import Utils from '@/lin/util/util'
 import investmentRouter from './investment'
@@ -9,6 +7,7 @@ import analysisRouter from './analysis'
 import stockpoolRouter from './stockpool'
 import tecanalysisRouter from './tecanalysis'
 import loopbackRouter from './loopback'
+import filemanageRouter from './filemanage'
 
 // eslint-disable-next-line import/no-mutable-exports
 let homeRouter = [
@@ -53,14 +52,13 @@ let homeRouter = [
     icon: 'iconfont icon-rizhiguanli',
   },
   adminConfig,
-  // bookConfig,
-  // contentRouter,
   investmentRouter,
   uploadRouter,
   analysisRouter,
   stockpoolRouter,
   tecanalysisRouter,
   loopbackRouter,
+  filemanageRouter,
 ]
 
 const plugins = [...pluginsConfig]
