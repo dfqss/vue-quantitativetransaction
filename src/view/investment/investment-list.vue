@@ -21,6 +21,7 @@
 
       <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
       <el-button type="primary" @click="batchInsertStockPool" :loading="loading" v-permission="'加入股票池'">加入股票池</el-button>
+      <el-button type="primary" @click="exportStockpoolOfexcel" :loading="loading">导出核心指标</el-button>
     </div>
 
     <div class="table-container">
@@ -201,6 +202,7 @@ export default {
           date: data,
         }
         try {
+          console.log(data)
           const result = await InvestmentModel.deleteCoreIndexByCode(params)
           if (result.code == '0000') {
             this.$notify({ title: '成功', message: result.message, type: 'success' })
@@ -213,6 +215,24 @@ export default {
         this.loading = false
         this.getCoreIndexList()
       }
+    },
+    // 导出核心指数excel文件
+    async exportStockpoolOfexcel(){
+      this.loading = true
+      const params = {
+        fileType: "CoreIndex"
+      }
+      try {
+        const result = await InvestmentModel.exportCoreIndexlOfexcel(params)
+        if (result.code == '9999') {
+          this.$message.error(result.message)
+          this.loading = false
+          return
+        }
+      } catch (error) {
+        //this.$message.error('导出核心指数excel文件异常')
+      }
+      this.loading = false
     },
     // 强制更新查询参数
     orderNoChange() {

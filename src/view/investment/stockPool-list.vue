@@ -20,7 +20,11 @@
       </el-form>
 
       <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
-      <el-button type="primary" @click="batchDeleteStockPool" :loading="loading" v-permission="'移出股票池'">移出股票池</el-button>
+      <el-button type="primary" @click="handleDetali()" :loading="loading">加入股票池</el-button>
+      <el-button type="primary" @click="batchDeleteStockPool" :loading="loading" v-permission="'移出股票池'"
+        >移出股票池</el-button
+      >
+      <el-button type="primary" @click="exportStockpoolOfexcel" :loading="loading">导出股票池</el-button>
     </div>
 
     <div class="table-container">
@@ -47,7 +51,9 @@
           <template slot-scope="props">
             <div v-if="!dataList[props.$index].editFlag" class="table-edit">
               <div @click="handleCellEdit(props)" class="content">{{ props.row.remark }}</div>
-              <div class="cell-icon" @click="handleCellEdit(props)" v-permission="'修改股票池备注'"><i class="el-icon-edit"></i></div>
+              <div class="cell-icon" @click="handleCellEdit(props)" v-permission="'修改股票池备注'">
+                <i class="el-icon-edit"></i>
+              </div>
             </div>
             <div v-else class="table-edit" @mouseleave="handleCellCancel(props)">
               <el-input v-model="props.row.remark" placeholder></el-input>
@@ -79,6 +85,44 @@
         @size-change="hSizeChange"
       />
     </div>
+
+    <el-dialog
+      :title="dialogTitle"
+      width="1310px"
+      :visible.sync="showDialog"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      @close="resetForm"
+    >
+      <!-- el-form的label-width设置的是所有el-form-item的label宽度，el-form-item设置的为自己的宽度，优先级：el-form-item优先 -->
+      <el-form ref="form" :inline="true" :model="temp" label-width="120px">
+        <el-form-item label="股票代码" label-width="120px">
+          <el-col :span="15">
+            <el-input placeholder="" v-model="temp.code" size="mini"></el-input>
+          </el-col>
+        </el-form-item>
+
+        <el-form-item label="股票名称">
+          <el-col :span="15">
+            <el-input placeholder="" v-model="temp.codeName" size="mini"></el-input>
+          </el-col>
+        </el-form-item>
+
+        <el-form-item label="期数">
+          <el-col :span="15">
+            <el-input placeholder="" v-model="temp.periods" size="mini"></el-input>
+          </el-col>
+        </el-form-item>
+
+        <el-form-item label="备注">
+          <el-col :span="15">
+            <el-input placeholder="" v-model="temp.remark" size="mini"></el-input>
+          </el-col>
+        </el-form-item>
+
+        <el-button type="primary" @click="insertStockPool()" :loading="loading">新增股票</el-button>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
@@ -89,6 +133,8 @@ export default {
   name: 'List',
   data() {
     return {
+      // 详情页面弹出标识 true-弹出  false-关闭
+      showDialog: false,
       tempEditRemark: '',
       // 查询条件股票代码的默认值
       code: '',
@@ -113,6 +159,14 @@ export default {
       total: 0,
       // 当前页数
       curPage: 0,
+      temp: {
+        code: null,
+        codeName: null,
+        capitalMarket: null,
+        periods: null,
+        industry_sw: null,
+        remark: null,
+      },
     }
   },
   // 生命周期函数
@@ -152,6 +206,39 @@ export default {
       }
       this.loading = false
     },
+    // 新增股票池
+    async insertStockPool() {
+      this.loading = true
+
+      let params = {
+        code: this.temp.code,
+        codeName: this.temp.codeName,
+        capitalMarket: this.temp.capitalMarket,
+        periods: this.temp.periods,
+        industry_sw: this.temp.industry_sw,
+        remark: this.temp.remark,
+      }
+      try {
+        if (params.code != null && params.code !=''){
+          
+          return
+        }
+        const result = await StockPoolModel.insertStockPool(params)
+        await this.getStockPoolList()
+        if (result.code == '0000') {
+          this.$notify({ title: '成功', message: result.message, type: 'success' })
+        } else {
+          this.$message.error(result.message)
+        }
+      } catch (error) {
+        this.$message.error('新增股票池API异常')
+      }
+      // 关闭表单，清空数据
+      this.resetForm()
+      this.showDialog=false
+      this.loading = false
+      this.getCoreIndexList()
+    },
     // 批量删除股票池数据
     async batchDeleteStockPool() {
       this.loading = true
@@ -179,6 +266,39 @@ export default {
       this.$refs.multipleTable.clearSelection()
       this.loading = false
       this.getCoreIndexList()
+    },
+    // 导出股票池excel文件
+    async exportStockpoolOfexcel() {
+      this.loading = true
+      const params = {
+        fileType: 'Stockpool',
+      }
+      try {
+        const result = await StockPoolModel.exportStockpoolOfexcel(params)
+        if (result.code == '9999') {
+          this.$message.error(result.message)
+          this.loading = false
+          return
+        }
+      } catch (error) {
+        //this.$message.error('导出股票池excel文件异常')
+      }
+      this.loading = false
+    },
+    // 关闭详情表单后的操作：将所有字符值重置为初始值并移除校验结果
+    resetForm() {
+      this.temp.code = null
+      this.temp.codeName = null
+      this.temp.capitalMarket = null
+      this.temp.periods = null
+      this.temp.industry_sw = null
+      this.temp.remark = null
+      this.$refs.form.resetFields()
+    },
+    // 点击详情按钮时，给详情表单赋值
+    handleDetali() {
+      this.dialogTitle = '加入股票池'
+      this.showDialog = true
     },
     // row-key定义
     rowKeyInit(row) {

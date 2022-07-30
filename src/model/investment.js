@@ -1,4 +1,5 @@
 import _axios, { get, _delete } from '../lin/plugin/axios'
+import Config from '@/config'
 
 class Investment {
   // 分页查询核心指标列表
@@ -29,9 +30,14 @@ class Investment {
   static async deleteCoreIndexByCode(data) {
     return _axios({
       method: 'post',
-      url: 'investmentV1/coreIndex/deleteCoreIndexByCode',
+      url: 'investmentV1/coreIndex/updateCoreIndexByCode',
       data,
     })
+  }
+
+  // 导出股票池excel文件
+  static async exportCoreIndexlOfexcel(data){
+    window.open(Config.baseURL + "/investmentV1/download/downloadFile?fileTpye=CoreIndex", '_self')
   }
 }
 
