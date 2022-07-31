@@ -21,7 +21,10 @@
 
       <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
       <el-button type="primary" @click="batchInsertStockPool" :loading="loading" v-permission="'加入股票池'">加入股票池</el-button>
-      <el-button type="primary" @click="exportStockpoolOfexcel" :loading="loading">导出核心指标</el-button>
+      <div class="exportStockpoolOfexcel"><el-button type="primary" @click="exportStockpoolOfexcel" :loading="loading">导出核心指标</el-button></div>
+      
+      <div class="periods"><el-input v-model="periods" placeholder="" size="medium" disabled></el-input></div>
+      
     </div>
 
     <div class="table-container">
@@ -44,7 +47,7 @@
         <!-- 将需要排序的列上设置sortable为custom -->
         <el-table-column  label="股票名称" prop="codeName" />
         <el-table-column label="资本市场指标" prop="capitalMarket" />
-        <el-table-column label="是否新股" prop="isNewShares" width="100">
+        <el-table-column label="是否新股" prop="isNewShares" width="120" sortable='custom'>
           <template slot-scope="scope">
             <el-tag v-if="scope.row.isNewShares == 'N'" type="success">新股</el-tag>
             <el-tag v-if="scope.row.isNewShares == 'C'" type="warning">次新股</el-tag>
@@ -53,14 +56,14 @@
           </template>
         </el-table-column>
         <el-table-column label="核心指数" prop="finalCalCore" sortable='custom' />
-        <el-table-column label="期数" prop="periods" width="80"/>
-        <el-table-column label="是否本期新增" prop="showTimes" width="120">
+        <el-table-column label="是否本期新增" prop="showTimes" width="140" sortable='custom'>
           <template slot-scope="scope">
             <el-tag v-if="scope.row.showTimes == 1" type="success">本期新增</el-tag>
             <el-tag v-else type="info">往期数据</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="计算日期" prop="calDate" sortable='custom' />
+        <el-table-column label="获取日期" prop="calDate"/>
+        <el-table-column label="报告日期" prop="reportDate"/>
         <el-table-column label="入池状态" v-if="false" prop="inPoolStatus" />
         <el-table-column label="操作">
           <template slot-scope="props">
@@ -126,6 +129,12 @@ export default {
       flag: true,
       //根据某个字段排序
       orderBy: "code",
+      //是否新股
+      isNewShares: false,
+      //是否是否本期新增
+      isShowTimes: false,
+      //期数
+      periods: 0,
     }
   },
   // 生命周期函数
@@ -149,7 +158,9 @@ export default {
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
         flag: this.flag,
-        orderBy: this.orderBy
+        orderBy: this.orderBy,
+        isNewShares: this.isNewShares,
+        isShowTimes: this.isShowTimes,
       }
       try {
         const result = await InvestmentModel.getCoreIndexList(params)
@@ -160,6 +171,7 @@ export default {
           this.loading = false
           return
         }
+        this.periods = "投资标初选第"+result.periods+"期"
         this.dataList = result.dataList
         this.total = result.totalNum
       } catch (error) {
@@ -292,6 +304,8 @@ export default {
     // }
     //根据字段排序
     sortTableFun(column){//用户点击这一列的上下排序按钮时，触发的函数
+      console.log("is_new_shares:"+this.isNewShares)
+      console.log("isShowTimes:"+this.isShowTimes)
       this.column = column.prop; //该方法获取到当前列绑定的prop字段名赋值给一个变量，之后这个变量做为入参传给后端
       console.log(this.column)
       console.log(column.prop)
@@ -299,10 +313,22 @@ export default {
           if (column.order == 'ascending') {//当用户点击的是升序按钮，即ascending时
               this.flag = true
               this.orderBy = column.prop
+              if (this.column=="isNewShares"){
+                this.isNewShares= !this.isNewShares
+             }
+             if (this.column=="showTimes"){
+               this.isShowTimes=!this.isShowTimes
+             }
           } else if (column.order == 'descending') {
           //当用户点击的是升序按钮，即descending时
               this.flag = false
               this.orderBy = column.prop
+              if (this.column=="isNewShares"){
+                this.isNewShares= !this.isNewShares
+             }
+             if (this.column=="showTimes"){
+               this.isShowTimes=!this.isShowTimes
+             }
           }
           this.getCoreIndexList()
         }
@@ -329,5 +355,15 @@ export default {
   .table-container {
     padding: 0 40px 20px 40px;
   }
+}
+.periods {
+  float: right;
+  width: 200px;
+  height: 50px;
+}
+.exportStockpoolOfexcel{
+  float: right;
+  width: 200px;
+  height: 50px;
 }
 </style>
