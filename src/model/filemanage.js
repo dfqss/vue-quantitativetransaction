@@ -36,6 +36,15 @@ class Filemanage {
             data,
         })
     }
+
+    // 查询批量文件数据
+    static async getBatchFilesList(data){
+        return _axios({
+            method: 'post',
+            url: 'investmentV1/batchFiles/getBatchFilesList',
+            data,
+        })
+    }
 }
 
 export { Filemanage as FilemanageModel }
