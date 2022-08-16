@@ -18,6 +18,30 @@
             <!-- <el-option v-for="item in options" :key="item.value" :label="item.label" :value="item.value"> </el-option> -->
           </el-select>
         </el-form-item>
+
+        <el-form-item v-if="fileType == 'HXZB'" label="获取日期">
+          <!-- <span class="demonstration">默认</span> -->
+          <el-date-picker
+            v-model="calDate"
+            type="date"
+            value-format="yyyyMMdd"
+            placeholder="选择日期"
+            @change="orderNoChange"
+          >
+          </el-date-picker>
+        </el-form-item>
+
+        <el-form-item v-if="fileType == 'HXZB'" label="报告日期">
+          <!-- <span class="demonstration">默认</span> -->
+          <el-date-picker
+            v-model="reportDate"
+            type="date"
+            value-format="yyyyMMdd"
+            placeholder="选择日期"
+            @change="orderNoChange"
+          >
+          </el-date-picker>
+        </el-form-item>
       </el-form>
 
       <el-upload
@@ -60,6 +84,8 @@ export default {
       loading: false,
       fileType: '',
       fileList: [],
+      calDate: '',
+      reportDate: '',
     }
   },
 
@@ -100,6 +126,15 @@ export default {
       const formData = new FormData()
       formData.append('files', this.fileList[0].raw)
       formData.append('fileType', this.fileType)
+      if (this.fileType == 'HXZB') {
+        if (this.calDate == null || this.calDate == '' || this.reportDate == null || this.reportDate == '') {
+          this.$notify({ title: '警告', message: '获取日期和报告日期不能为空', type: 'warning' })
+          this.loading = false
+          return
+        }
+        formData.append('calDate', this.calDate.toString())
+        formData.append('reportDate', this.reportDate.toString())
+      }
       try {
         const result = await AllIndexModel.uploadFile(formData)
         if (result.code == '0000') {
@@ -112,6 +147,10 @@ export default {
       }
       this.fileList = []
       this.loading = false
+    },
+    // 强制更新查询参数
+    orderNoChange() {
+      this.$forceUpdate()
     },
   },
 }

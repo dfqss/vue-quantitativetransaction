@@ -1,11 +1,12 @@
 import _axios, { _delete } from '../lin/plugin/axios'
+import Config from '@/config'
 
 class Filemanage {
     // 批量文件入库
     static async readCoreIndexExcel(data) {
         return _axios({
             method: 'post',
-            url: 'investmentV1/importData/readCoreIndexExcel',
+            url: Config.springURL + 'quaTraV1/importData/readCoreIndexExcel',
             data,
         })
     }
@@ -14,7 +15,7 @@ class Filemanage {
     static async importCoreIndexData(data) {
         return _axios({
             method: 'post',
-            url: 'investmentV1/importData/importCoreIndexData',
+            url: Config.springURL + 'quaTraV1/importData/importCoreIndexData',
             data,
         })
     }
@@ -23,7 +24,7 @@ class Filemanage {
     static async importOtherIndexData(data) {
         return _axios({
             method: 'post',
-            url: 'investmentV1/importData/importOtherIndexData',
+            url: Config.springURL + 'quaTraV1/importData/importOtherIndexData',
             data,
         })
     }
