@@ -17,14 +17,33 @@
             <el-input placeholder="请输入内容" size="medium" v-model="codeName" @input="orderNoChange"></el-input>
           </el-col>
         </el-form-item>
+
+        <el-form-item label="是否新股">
+          <el-select size="medium" v-model="isNewShares" placeholder="请选择" clearable="">
+            <el-option label="新股" value="N"></el-option>
+            <el-option label="非新股" value="F"></el-option>
+            <el-option label="次新股" value="C"></el-option>
+          </el-select>
+        </el-form-item>
+
+        <el-form-item label="是否本期新增">
+          <el-select size="medium" v-model="isShowTimes" placeholder="请选择" clearable="">
+            <el-option label="是" value="Y"></el-option>
+            <el-option label="否" value="N"></el-option>
+          </el-select>
+        </el-form-item>
+        <!-- <el-switch v-model="isShowTimes" active-text="本期新增" active-value="Y" inactive-value="N" active-color="#3963bc"></el-switch> -->
       </el-form>
 
       <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
-      <el-button type="primary" @click="batchInsertStockPool" :loading="loading" v-permission="'加入股票池'">加入股票池</el-button>
-      <div class="exportStockpoolOfexcel"><el-button type="primary" @click="exportStockpoolOfexcel" :loading="loading">导出核心指标</el-button></div>
-      
+      <el-button type="primary" @click="batchInsertStockPool" :loading="loading" v-permission="'加入股票池'"
+        >加入股票池</el-button
+      >
+      <div class="exportStockpoolOfexcel">
+        <el-button type="primary" @click="exportStockpoolOfexcel" :loading="loading">导出核心指标</el-button>
+      </div>
+
       <div class="periods"><el-input v-model="periods" placeholder="" size="medium" disabled></el-input></div>
-      
     </div>
 
     <div class="table-container">
@@ -38,16 +57,16 @@
         tooltip-effect="dark"
         :row-key="rowKeyInit"
         @selection-change="handleSelectionChange"
-        @sort-change='sortTableFun' 
+        @sort-change="sortTableFun"
       >
         <!-- 排序:监听sort-change事件,绑定sortTableFun函数 -->
         <el-table-column type="selection" :selectable="selectInit" reserve-selection align="center" width="55" />
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
-        <el-table-column label="股票代码" prop="code" sortable='custom' />
+        <el-table-column label="股票代码" prop="code" sortable="custom" />
         <!-- 将需要排序的列上设置sortable为custom -->
-        <el-table-column  label="股票名称" prop="codeName" />
+        <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="资本市场指标" prop="capitalMarket" />
-        <el-table-column label="是否新股" prop="isNewShares" width="120" sortable='custom'>
+        <el-table-column label="是否新股" prop="isNewShares" width="120" sortable="custom">
           <template slot-scope="scope">
             <el-tag v-if="scope.row.isNewShares == 'N'" type="success">新股</el-tag>
             <el-tag v-if="scope.row.isNewShares == 'C'" type="warning">次新股</el-tag>
@@ -55,19 +74,22 @@
             <!-- <el-tag v-else type="info">非新股</el-tag> -->
           </template>
         </el-table-column>
-        <el-table-column label="核心指数" prop="finalCalCore" sortable='custom' />
-        <el-table-column label="是否本期新增" prop="showTimes" width="140" sortable='custom'>
+        <el-table-column label="上期核心指数" prop="preFinalCalCore" />
+        <el-table-column label="本期核心指数" prop="finalCalCore" sortable="custom" />
+        <el-table-column label="是否本期新增" prop="showTimes" width="140" sortable="custom">
           <template slot-scope="scope">
             <el-tag v-if="scope.row.showTimes == 1" type="success">本期新增</el-tag>
             <el-tag v-else type="info">往期数据</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="获取日期" prop="calDate"/>
-        <el-table-column label="报告日期" prop="reportDate"/>
+        <el-table-column label="获取日期" prop="calDate" />
+        <el-table-column label="报告日期" prop="reportDate" />
         <el-table-column label="入池状态" v-if="false" prop="inPoolStatus" />
         <el-table-column label="操作">
           <template slot-scope="props">
-            <el-button type="danger" @click="deleteCoreIndexByCode(props.row)" v-permission="'删除投资标初选数据'">删除</el-button>
+            <el-button type="danger" @click="deleteCoreIndexByCode(props.row)" v-permission="'删除投资标初选数据'"
+              >删除</el-button
+            >
           </template>
           <!-- <el-button type="primary" @click="deleteCoreIndexByCode()" :loading="loading">删除</el-button> -->
         </el-table-column>
@@ -128,11 +150,11 @@ export default {
       //正序倒序，默认正序
       flag: true,
       //根据某个字段排序
-      orderBy: "code",
+      orderBy: 'code',
       //是否新股
-      isNewShares: false,
+      isNewShares: '',
       //是否是否本期新增
-      isShowTimes: false,
+      isShowTimes: '',
       //期数
       periods: 0,
     }
@@ -171,7 +193,7 @@ export default {
           this.loading = false
           return
         }
-        this.periods = "投资标初选第"+result.periods+"期"
+        this.periods = '投资标初选第' + result.periods + '期'
         this.dataList = result.dataList
         this.total = result.totalNum
       } catch (error) {
@@ -229,10 +251,10 @@ export default {
       }
     },
     // 导出核心指数excel文件
-    async exportStockpoolOfexcel(){
+    async exportStockpoolOfexcel() {
       this.loading = true
       const params = {
-        fileType: "CoreIndex"
+        fileType: 'CoreIndex',
       }
       try {
         const result = await InvestmentModel.exportCoreIndexlOfexcel(params)
@@ -303,38 +325,40 @@ export default {
     //     }
     // }
     //根据字段排序
-    sortTableFun(column){//用户点击这一列的上下排序按钮时，触发的函数
-      console.log("is_new_shares:"+this.isNewShares)
-      console.log("isShowTimes:"+this.isShowTimes)
-      this.column = column.prop; //该方法获取到当前列绑定的prop字段名赋值给一个变量，之后这个变量做为入参传给后端
+    sortTableFun(column) {
+      //用户点击这一列的上下排序按钮时，触发的函数
+      console.log('is_new_shares:' + this.isNewShares)
+      console.log('isShowTimes:' + this.isShowTimes)
+      this.column = column.prop //该方法获取到当前列绑定的prop字段名赋值给一个变量，之后这个变量做为入参传给后端
       console.log(this.column)
       console.log(column.prop)
-        if (column.prop) { //该列有绑定prop字段走这个分支
-          if (column.order == 'ascending') {//当用户点击的是升序按钮，即ascending时
-              this.flag = true
-              this.orderBy = column.prop
-              if (this.column=="isNewShares"){
-                this.isNewShares= !this.isNewShares
-             }
-             if (this.column=="showTimes"){
-               this.isShowTimes=!this.isShowTimes
-             }
-          } else if (column.order == 'descending') {
-          //当用户点击的是升序按钮，即descending时
-              this.flag = false
-              this.orderBy = column.prop
-              if (this.column=="isNewShares"){
-                this.isNewShares= !this.isNewShares
-             }
-             if (this.column=="showTimes"){
-               this.isShowTimes=!this.isShowTimes
-             }
+      if (column.prop) {
+        //该列有绑定prop字段走这个分支
+        if (column.order == 'ascending') {
+          //当用户点击的是升序按钮，即ascending时
+          this.flag = true
+          this.orderBy = column.prop
+          if (this.column == 'isNewShares') {
+            this.isNewShares = !this.isNewShares
           }
-          this.getCoreIndexList()
+          if (this.column == 'showTimes') {
+            this.isShowTimes = !this.isShowTimes
+          }
+        } else if (column.order == 'descending') {
+          //当用户点击的是升序按钮，即descending时
+          this.flag = false
+          this.orderBy = column.prop
+          if (this.column == 'isNewShares') {
+            this.isNewShares = !this.isNewShares
+          }
+          if (this.column == 'showTimes') {
+            this.isShowTimes = !this.isShowTimes
+          }
         }
+        this.getCoreIndexList()
       }
+    },
   },
-   
 }
 </script>
 
@@ -361,7 +385,7 @@ export default {
   width: 200px;
   height: 50px;
 }
-.exportStockpoolOfexcel{
+.exportStockpoolOfexcel {
   float: right;
   width: 200px;
   height: 50px;
