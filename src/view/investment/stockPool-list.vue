@@ -44,7 +44,6 @@
         <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="资本市场指标" prop="capitalMarket" />
-        <el-table-column label="期数" prop="periods" />
         <el-table-column label="行业名称(申万)" prop="industry_sw" />
         <!-- 单元格编辑 -->
         <el-table-column label="备注" prop="remark" show-overflow-tooltip>
@@ -105,12 +104,6 @@
         <el-form-item label="股票名称">
           <el-col :span="15">
             <el-input placeholder="" v-model="temp.codeName" size="mini"></el-input>
-          </el-col>
-        </el-form-item>
-
-        <el-form-item label="期数">
-          <el-col :span="15">
-            <el-input placeholder="" v-model="temp.periods" size="mini"></el-input>
           </el-col>
         </el-form-item>
 
@@ -209,18 +202,15 @@ export default {
     // 新增股票池
     async insertStockPool() {
       this.loading = true
-
       let params = {
         code: this.temp.code,
         codeName: this.temp.codeName,
         capitalMarket: this.temp.capitalMarket,
-        periods: this.temp.periods,
-        industry_sw: this.temp.industry_sw,
         remark: this.temp.remark,
       }
       try {
-        if (params.code != null && params.code !=''){
-          
+        if (params.code === null && params.code ===''){
+          console.log("==============")
           return
         }
         const result = await StockPoolModel.insertStockPool(params)

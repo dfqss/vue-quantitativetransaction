@@ -66,6 +66,7 @@
         <!-- 将需要排序的列上设置sortable为custom -->
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="资本市场指标" prop="capitalMarket" />
+        <el-table-column label="行业名称(申万)" prop="industrySw" />
         <el-table-column label="是否新股" prop="isNewShares" width="120" sortable="custom">
           <template slot-scope="scope">
             <el-tag v-if="scope.row.isNewShares == 'N'" type="success">新股</el-tag>
@@ -74,7 +75,7 @@
             <!-- <el-tag v-else type="info">非新股</el-tag> -->
           </template>
         </el-table-column>
-        <el-table-column label="上期核心指数" prop="preFinalCalCore" />
+        <el-table-column label="上期核心指数" prop="preFinalCalCore" sortable="custom"/>
         <el-table-column label="本期核心指数" prop="finalCalCore" sortable="custom" />
         <el-table-column label="是否本期新增" prop="showTimes" width="140" sortable="custom">
           <template slot-scope="scope">
@@ -155,6 +156,8 @@ export default {
       isNewShares: '',
       //是否是否本期新增
       isShowTimes: '',
+      //正序倒序
+      isPreFinalCalCoreOrderFlag: '',
       //期数
       periods: 0,
     }
@@ -183,6 +186,7 @@ export default {
         orderBy: this.orderBy,
         isNewShares: this.isNewShares,
         isShowTimes: this.isShowTimes,
+        isPreFinalCalCoreOrderFlag: this.isPreFinalCalCoreOrderFlag
       }
       try {
         const result = await InvestmentModel.getCoreIndexList(params)
@@ -342,7 +346,10 @@ export default {
             this.isNewShares = !this.isNewShares
           }
           if (this.column == 'showTimes') {
-            this.isShowTimes = !this.isShowTimes
+            this.isShowTimes = "Y"
+          }
+          if (this.column ==='preFinalCalCore') {
+            this.isPreFinalCalCoreOrderFlag = "Y"
           }
         } else if (column.order == 'descending') {
           //当用户点击的是升序按钮，即descending时
@@ -352,7 +359,10 @@ export default {
             this.isNewShares = !this.isNewShares
           }
           if (this.column == 'showTimes') {
-            this.isShowTimes = !this.isShowTimes
+            this.isShowTimes = "N"
+          }
+          if (this.column ==='preFinalCalCore') {
+            this.isPreFinalCalCoreOrderFlag = "N"
           }
         }
         this.getCoreIndexList()
