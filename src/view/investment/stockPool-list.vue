@@ -205,7 +205,6 @@ export default {
       let params = {
         code: this.temp.code,
         codeName: this.temp.codeName,
-        capitalMarket: this.temp.capitalMarket,
         remark: this.temp.remark,
       }
       try {
@@ -279,9 +278,6 @@ export default {
     resetForm() {
       this.temp.code = null
       this.temp.codeName = null
-      this.temp.capitalMarket = null
-      this.temp.periods = null
-      this.temp.industry_sw = null
       this.temp.remark = null
       this.$refs.form.resetFields()
     },

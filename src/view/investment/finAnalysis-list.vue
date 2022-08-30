@@ -29,15 +29,30 @@
       <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
       <el-button type="primary" @click="queryList('query')" :loading="loading">查 询</el-button>
       <el-button type="primary" @click="queryList('byCode')" :loading="loading">关联核心指标查询</el-button>
+      <el-button type="primary" @click="batchInsertStockPool" :loading="loading" v-permission="'加入股票池'"
+        >加入股票池</el-button
+      >
     </div>
 
     <div class="table-container">
-      <el-table :data="dataList" border highlight-current-row :cell-style="{ 'text-align': 'center' }">
+      <el-table
+        :data="dataList"
+        border
+        highlight-current-row
+        :cell-style="{ 'text-align': 'center' }"
+        ref="multipleTable"
+        tooltip-effect="dark"
+        :row-key="rowKeyInit"
+        @selection-change="handleSelectionChange"
+        @sort-change="sortTableFun"
+      >
+        <!-- 排序:监听sort-change事件,绑定sortTableFun函数 -->
+        <el-table-column type="selection" :selectable="selectInit" reserve-selection align="center" width="55" />
         <!-- <el-table-column label="序号" width="60" type="index" /> -->
         <el-table-column label="股票代码" prop="code" />
-        <el-table-column label="股票名称" prop="code_name" />
+        <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="行业名称(申万)" prop="industry_sw" />
-        <el-table-column label="净资产收益率ROE(加权)" prop="roe_basic" />
+        <el-table-column label="净资产收益率ROE(加权)" prop="roe_basic" sortable="custom" />
         <el-table-column label="销售毛利率" prop="gross_profit_margin" />
         <el-table-column label="营业总收入" prop="tot_ope_rev" />
         <el-table-column label="商誉" prop="goodwill" />
@@ -47,6 +62,7 @@
         <el-table-column label="每股营业总收入" prop="gr_ps" />
         <el-table-column label="每股收益EPS-基本" prop="eps_basic" />
         <el-table-column label="每股净资产BPS" prop="bps" />
+        <el-table-column label="入池状态" v-if="false" prop="inPoolStatus" />
 
         <el-table-column label="操作" fix="right">
           <template slot-scope="scope">
@@ -91,7 +107,7 @@
 
         <el-form-item label="股票名称">
           <el-col :span="15">
-            <el-input placeholder="" v-model="temp.code_name" size="mini" disabled></el-input>
+            <el-input placeholder="" v-model="temp.codeName" size="mini" disabled></el-input>
           </el-col>
         </el-form-item>
 
@@ -215,6 +231,7 @@
 
 <script>
 import { FinAnalysisModel } from '../../model/finAnalysis'
+import { StockPoolModel } from '../../model/stockPool'
 
 export default {
   name: 'List',
@@ -234,10 +251,16 @@ export default {
       loading: false,
       // 页签标题
       dialogTitle: '',
+      // 选项值
+      multipleSelection: [],
+      //正序倒序，默认正序
+      orderFlag: true,
+      //根据某个字段排序
+      orderBy: '',
       // 详情数据
       temp: {
         code: null,
-        code_name: null,
+        codeName: null,
         roe_basic: '0',
         gross_profit_margin: '0',
         tot_ope_rev: '0',
@@ -298,6 +321,8 @@ export default {
         codeName: this.codeName,
         industry_sw: this.industry_sw,
         pageNum: this.pageParams.page,
+        orderFlag: this.orderFlag,
+        orderBy: this.orderBy,
         pageSize: this.pageParams.pagesize,
         flag: this.flag,
       }
@@ -317,6 +342,84 @@ export default {
       }
       this.loading = false
     },
+    // 批量插入股票池数据
+    async batchInsertStockPool() {
+      this.loading = true
+      if (this.multipleSelection == null || this.multipleSelection.length == 0) {
+        this.$notify.info({ title: '提示', message: '请选择你要入池的股票信息' })
+        this.loading = false
+        return
+      }
+      console.log(this.multipleSelection)
+      const params = {
+        insertData: this.multipleSelection,
+      }
+
+      try {
+        const result = await StockPoolModel.batchInsertStockPool(params)
+        if (result.code == '0000') {
+          this.$notify({ title: '成功', message: result.message, type: 'success' })
+        } else {
+          this.$message.error(result.message)
+        }
+      } catch (error) {
+        this.$message.error('调用股票池批量添加API异常')
+      }
+      // 调用服务以后，需要把勾选清除掉
+      this.$refs.multipleTable.clearSelection()
+      this.loading = false
+      this.getFinAnalysisIndexList()
+    },
+    // row-key定义
+    rowKeyInit(row) {
+      return row.code
+    },
+    // 多选
+    handleSelectionChange(val) {
+      this.multipleSelection = val
+      // this.$emit(
+      //   'batchInsertCoreIndex',
+      //   val.map(item => {
+      //     return {
+      //       id: item.code,
+      //       defectStatus: item.defectStatus,
+      //     }
+      //   }),
+      // )
+    },
+    // 限制表格勾选，勾选规则:需要是同一类型的数据
+    selectInit(row) {
+      // 限制逻辑，返回true则为可勾选，反之则禁止勾选
+      // const judge = true
+      // if (this.multipleSelection.length != 0) {
+      //   judge = this.multipleSelection.some(item => {
+      //     return item.code === row.code
+      //   })
+      // }
+      return !(row.inPoolStatus == 'in')
+    },
+    //根据字段排序
+    sortTableFun(column) {
+      //用户点击这一列的上下排序按钮时，触发的函数
+      console.log('is_new_shares:' + this.isNewShares)
+      console.log('isShowTimes:' + this.isShowTimes)
+      this.column = column.prop //该方法获取到当前列绑定的prop字段名赋值给一个变量，之后这个变量做为入参传给后端
+      console.log(this.column)
+      console.log(column.prop)
+      if (column.prop) {
+        //该列有绑定prop字段走这个分支
+        if (column.order == 'ascending') {
+          //当用户点击的是升序按钮，即ascending时
+          this.orderFlag = true
+          this.orderBy = column.prop
+        } else if (column.order == 'descending') {
+          //当用户点击的是升序按钮，即descending时
+          this.orderFlag = false
+          this.orderBy = column.prop
+        }
+        this.getFinAnalysisIndexList()
+      }
+    },
     // 强制更新查询参数
     orderNoChange() {
       this.$forceUpdate()
@@ -331,14 +434,17 @@ export default {
       this.showDialog = true
 
       this.temp.code = row.code
-      this.temp.code_name = row.code_name
+      this.temp.codeName = row.codeName
       this.temp.roe_basic = row.roe_basic !== null && row.roe_basic !== undefined ? row.roe_basic : this.temp.roe_basic
-      this.temp.gross_profit_margin = row.gross_profit_margin !== null && row.gross_profit_margin !== undefined
-        ? row.gross_profit_margin
-        : this.temp.gross_profit_margin
-      this.temp.tot_ope_rev = row.tot_ope_rev !== null && row.tot_ope_rev !== undefined ? row.tot_ope_rev : this.temp.tot_ope_rev
+      this.temp.gross_profit_margin =
+        row.gross_profit_margin !== null && row.gross_profit_margin !== undefined
+          ? row.gross_profit_margin
+          : this.temp.gross_profit_margin
+      this.temp.tot_ope_rev =
+        row.tot_ope_rev !== null && row.tot_ope_rev !== undefined ? row.tot_ope_rev : this.temp.tot_ope_rev
       this.temp.goodwill = row.goodwill !== null && row.goodwill !== undefined ? row.goodwill : this.temp.goodwill
-      this.temp.debt_to_assets = row.debt_to_assets !== null && row.debt_to_assets !== undefined ? row.debt_to_assets : this.temp.debt_to_assets
+      this.temp.debt_to_assets =
+        row.debt_to_assets !== null && row.debt_to_assets !== undefined ? row.debt_to_assets : this.temp.debt_to_assets
       this.temp.pe = row.pe !== null && row.pe !== undefined ? row.pe : this.temp.pe
       this.temp.pb = row.pb !== null && row.pb !== undefined ? row.pb : this.temp.pb
       this.temp.gr_ps = row.gr_ps !== null && row.gr_ps !== undefined ? row.gr_ps : this.temp.gr_ps
@@ -346,15 +452,19 @@ export default {
       this.temp.bps = row.bps !== null && row.bps !== undefined ? row.bps : this.temp.bps
       this.temp.roe_avg = row.roe_avg !== null && row.roe_avg !== undefined ? row.roe_avg : this.temp.roe_avg
       this.temp.roa = row.roa !== null && row.roa !== undefined ? row.roa : this.temp.roa
-      this.temp.net_profit_margin = row.net_profit_margin !== null && row.net_profit_margin !== undefined
-        ? row.net_profit_margin
-        : this.temp.net_profit_margin
+      this.temp.net_profit_margin =
+        row.net_profit_margin !== null && row.net_profit_margin !== undefined
+          ? row.net_profit_margin
+          : this.temp.net_profit_margin
       this.temp.ope_rev = row.ope_rev !== null && row.ope_rev !== undefined ? row.ope_rev : this.temp.ope_rev
-      this.temp.r_and_d_costs = row.r_and_d_costs !== null && row.r_and_d_costs !== undefined ? row.r_and_d_costs : this.temp.r_and_d_costs
-      this.temp.segment_sales = row.segment_sales !== null && row.segment_sales !== undefined ? row.segment_sales : this.temp.segment_sales
-      this.temp.cash_to_current_debt = row.cash_to_current_debt !== null && row.cash_to_current_debt !== undefined
-        ? row.cash_to_current_debt
-        : this.temp.cash_to_current_debt
+      this.temp.r_and_d_costs =
+        row.r_and_d_costs !== null && row.r_and_d_costs !== undefined ? row.r_and_d_costs : this.temp.r_and_d_costs
+      this.temp.segment_sales =
+        row.segment_sales !== null && row.segment_sales !== undefined ? row.segment_sales : this.temp.segment_sales
+      this.temp.cash_to_current_debt =
+        row.cash_to_current_debt !== null && row.cash_to_current_debt !== undefined
+          ? row.cash_to_current_debt
+          : this.temp.cash_to_current_debt
       this.temp.or_ps = row.or_ps !== null && row.or_ps !== undefined ? row.or_ps : this.temp.or_ps
       this.temp.cf_ps = row.cf_ps !== null && row.cf_ps !== undefined ? row.cf_ps : this.temp.cf_ps
     },
