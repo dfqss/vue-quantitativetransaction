@@ -8,7 +8,7 @@ class Backtest {
   static async getBackTestList(data) {
     return _axios({
       method: 'post',
-      url: Config.springURL +  'quaTraV1/BackTest/getBackTestList',
+      url: 'investmentV1/backtest/getBacktestList',
       data,
     })
   }

@@ -7,11 +7,11 @@ const loopbackRouter = {
   inNav: true,
   children: [
     {
-      title: '投资标筛选',
+      title: '股价回测',
       type: 'view',
-      name: 'tecAnalysis',
-      route: '/investment/tecAnalysis-list',
-      filePath: 'view/investment/tecAnalysis-list.vue',
+      name: 'coreindexBacktest',
+      route: '/backtest/coreindexBacktest-list',
+      filePath: 'view/backtest/coreindexBacktest-list.vue',
       inNav: true,
       icon: 'iconfont icon-quan',
     },
