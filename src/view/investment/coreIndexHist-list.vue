@@ -52,6 +52,8 @@
         <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="是否新股" prop="isNewShares" />
+        <el-table-column label="最新核心指标" prop="currentCore" />
+        <el-table-column label="次新核心指标" prop="periodCore" />
         <el-table-column label="核心指数" prop="finalCalCore" />
         <el-table-column label="期数" prop="periods" />
         <el-table-column label="计算日期" prop="calDate" />

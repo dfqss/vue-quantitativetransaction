@@ -53,7 +53,7 @@ class StockPool {
     //console.log(Config.baseURL) 
     // baseURL = Config.baseURL
     // console.log(baseURL)StockPool
-    window.open(Config.baseURL + "/investmentV1/download/downloadFile?fileTpye=StockPool", '_self')
+    window.open(Config.baseURL + "/investmentV1/download/downloadFile?fileType=StockPool", '_self')
   }
 
 }

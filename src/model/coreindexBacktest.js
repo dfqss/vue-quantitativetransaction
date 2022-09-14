@@ -13,6 +13,14 @@ class Backtest {
     })
   }
 
+    // 导出股票池excel文件
+    static async exportCodeIndexBackOfexcel(data) {
+      //console.log(Config.baseURL) 
+      // baseURL = Config.baseURL
+      // console.log(baseURL)StockPool
+      window.open(Config.baseURL + `investmentV1/download/downloadFile?fileType=${data.fileType}&periods=${data.periods}`, '_self')
+    }
+
 }
 
 export { Backtest as BacktestModel }

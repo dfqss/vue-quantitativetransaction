@@ -40,18 +40,28 @@
 
       <!-- <el-button type="primary" @click="handAdd" v-permission="'废弃按钮'">废弃按钮</el-button> -->
       <el-button type="primary" @click="queryList" :loading="loading">查 询</el-button>
+      <el-button type="primary" @click="handleDetali" :loading="loading">导出回测文件</el-button>
     </div>
 
     <div class="table-container">
-      <el-table :data="dataList" border highlight-current-row :cell-style="{ 'text-align': 'center' }">
+      <el-table :data="dataList" border highlight-current-row :cell-style="{ 'text-align': 'center' } " ref="multipleTable"
+        style="width: 100%"
+        tooltip-effect="dark"
+        :row-key="rowKeyInit"
+        @selection-change="handleSelectionChange"
+        @sort-change="sortTableFun">
+        <!-- 排序:监听sort-change事件,绑定sortTableFun函数 -->
+        <el-table-column type="selection" :selectable="selectInit" reserve-selection align="center" width="55" />
+        <!-- 将需要排序的列上设置sortable为custom -->
         <el-table-column label="序号" width="60" type="index" />
         <el-table-column label="股票代码" prop="code" />
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="期数" prop="periods" />
-        <el-table-column label="核心指数" prop="finalCalCore" />
-        <el-table-column label="净资产收益率ROE(平均)" prop="roeAvg" />
-        <el-table-column label="季涨幅" prop="quarterRise" />
-        <el-table-column label="半年涨幅" prop="halfYearRise" />
+        <el-table-column label="核心指数" prop="finalCalCore" sortable="custom" />
+        <el-table-column label="净资产收益率ROE(平均)" prop="roeAvg" sortable="custom"/>
+        <el-table-column label="季涨幅" prop="quarterRise" sortable="custom"/>
+        <el-table-column label="半年涨幅" prop="halfYearRise" sortable="custom"/>
+        <el-table-column label="报告日期" prop="calDate" />
       </el-table>
 
       <!-- 上下页调整按钮 -->
@@ -71,7 +81,27 @@
         @size-change="hSizeChange"
       />
     </div>
+    <el-dialog
+      :title="dialogTitle"
+      width="1310px"
+      :visible.sync="showDialog"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      @close="resetForm"
+    >
+      <!-- el-form的label-width设置的是所有el-form-item的label宽度，el-form-item设置的为自己的宽度，优先级：el-form-item优先 -->
+      <el-form ref="form" :inline="true" :model="temp" label-width="120px">
+        <el-form-item label="期数" label-width="120px">
+          <el-col :span="15">
+            <el-input placeholder="" v-model="temp.periods" size="mini"></el-input>
+          </el-col>
+        </el-form-item>
+        <el-button type="primary" @click="exportCodeIndexBackOfexcel()" :loading="loading">导出回测文件</el-button>
+      </el-form>
+    </el-dialog>
   </div>
+  
+  
 </template>
 
 <script>
@@ -107,11 +137,22 @@ export default {
       total: 0,
       // 当前页数
       curPage: 0,
+      // 详情页面弹出标识 true-弹出  false-关闭
+      showDialog: false,
+      tempEditRemark: '',
+      // 导出回测文件的变量
+      temp: {
+        periods: null,
+      },
+      //正序倒序，默认正序
+      flag: true,
+      //根据某个字段排序
+      orderBy: 'code',
     }
   },
   // 生命周期函数
   created() {
-    this.getCoreIndexHistoryList()
+    this.getBackTestList()
   },
   methods: {
     // 点击查询按钮触发事件
@@ -119,10 +160,10 @@ export default {
       // 重置当前页数，防止输入查询条件时，页码传值错误
       this.pageParams.page = 1
       this.curPage = 1
-      await this.getCoreIndexHistoryList()
+      await this.getBackTestList()
     },
     // 获取核心指数列表
-    async getCoreIndexHistoryList() {
+    async getBackTestList() {
       this.loading = true
       // calDate重置后会成为空对象[null]，在调用toString方法后会报错，故在此判空并赋予默认值
       if (this.calDate == null) {
@@ -133,6 +174,8 @@ export default {
         codeName: this.codeName,
         calDate: this.calDate.toString(),
         periods: this.periods,
+        flag: this.flag,
+        orderBy: this.orderBy,
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
       }
@@ -157,6 +200,68 @@ export default {
     orderNoChange() {
       this.$forceUpdate()
     },
+    // 点击详情按钮时，给详情表单赋值
+    handleDetali() {
+      this.dialogTitle = '导出回测文件'
+      this.showDialog = true
+    },
+    // 导出回测excel文件
+    async exportCodeIndexBackOfexcel() {
+      this.loading = true
+      const params = {
+        fileType: 'CodeIndexBack',
+        periods: this.temp.periods
+      }
+      try {
+        console.log("aaaaaaaaaa")
+        const result = await BacktestModel.exportCodeIndexBackOfexcel(params)
+        if (result.code == '9999') {
+          this.$message.error(result.message)
+          this.loading = false
+          return
+        }
+      } catch (error) {
+        // this.$message.error('导出回测股票excel文件异常')
+      }
+      // 关闭表单，清空数据
+      this.resetForm()
+      this.showDialog=false
+      this.loading = false
+      this.getBackTestList()
+    },
+    // 关闭详情表单后的操作：将所有字符值重置为初始值并移除校验结果
+    resetForm() {
+      this.temp.periods = null
+      this.$refs.form.resetFields()
+    },
+        // row-key定义
+    rowKeyInit(row) {
+      return row.code
+    },
+    // 多选
+    handleSelectionChange(val) {
+      this.multipleSelection = val
+      // this.$emit(
+      //   'batchInsertCoreIndex',
+      //   val.map(item => {
+      //     return {
+      //       id: item.code,
+      //       defectStatus: item.defectStatus,
+      //     }
+      //   }),
+      // )
+    },
+    // 限制表格勾选，勾选规则:需要是同一类型的数据
+    selectInit(row) {
+      // 限制逻辑，返回true则为可勾选，反之则禁止勾选
+      // const judge = true
+      // if (this.multipleSelection.length != 0) {
+      //   judge = this.multipleSelection.some(item => {
+      //     return item.code === row.code
+      //   })
+      // }
+      return !(row.inPoolStatus == 'in')
+    },
     // 分页相关方法
     async hCurrentChange(curPage) {
       // alert(curPage)
@@ -171,6 +276,30 @@ export default {
       this.pageParams.pagesize = pagesize
       // 2. 重发请求
       await this.getCoreIndexHistoryList()
+    },
+        //根据字段排序
+    sortTableFun(column) {
+      //用户点击这一列的上下排序按钮时，触发的函数
+      this.column = column.prop //该方法获取到当前列绑定的prop字段名赋值给一个变量，之后这个变量做为入参传给后端
+      if (column.prop) {
+        //该列有绑定prop字段走这个分支
+        if (column.order == 'ascending') {
+          //当用户点击的是升序按钮，即ascending时
+          this.flag = true
+          this.orderBy = column.prop
+          // if (this.column == 'isNewShares') {
+          //   this.isNewShares = !this.isNewShares
+          // }
+        } else if (column.order == 'descending') {
+          //当用户点击的是升序按钮，即descending时
+          this.flag = false
+          this.orderBy = column.prop
+          // if (this.column == 'isNewShares') {
+          //   this.isNewShares = !this.isNewShares
+          // }
+        }
+        this.getBackTestList()
+      }
     },
   },
 }

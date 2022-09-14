@@ -209,7 +209,7 @@ export default {
       }
       try {
         if (params.code === null && params.code ===''){
-          console.log("==============")
+          this.$message.error('股票代码不能为空')
           return
         }
         const result = await StockPoolModel.insertStockPool(params)

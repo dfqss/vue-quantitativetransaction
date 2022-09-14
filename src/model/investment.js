@@ -37,7 +37,7 @@ class Investment {
 
   // 导出股票池excel文件
   static async exportCoreIndexlOfexcel(data){
-    window.open(Config.baseURL + "/investmentV1/download/downloadFile?fileTpye=CoreIndex", '_self')
+    window.open(Config.baseURL + "/investmentV1/download/downloadFile?fileType=CoreIndex", '_self')
   }
 }
 
