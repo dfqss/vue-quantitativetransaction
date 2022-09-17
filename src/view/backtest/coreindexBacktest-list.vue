@@ -54,7 +54,7 @@
         <el-table-column type="selection" :selectable="selectInit" reserve-selection align="center" width="55" />
         <!-- 将需要排序的列上设置sortable为custom -->
         <el-table-column label="序号" width="60" type="index" />
-        <el-table-column label="股票代码" prop="code" />
+        <el-table-column label="股票代码" prop="code" sortable="custom" />
         <el-table-column label="股票名称" prop="codeName" />
         <el-table-column label="期数" prop="periods" />
         <el-table-column label="核心指数" prop="finalCalCore" sortable="custom" />
@@ -144,10 +144,8 @@ export default {
       temp: {
         periods: null,
       },
-      //正序倒序，默认正序
-      flag: true,
-      //根据某个字段排序
-      orderBy: 'code',
+      // 排序列表
+      orderByList: [],
     }
   },
   // 生命周期函数
@@ -174,8 +172,7 @@ export default {
         codeName: this.codeName,
         calDate: this.calDate.toString(),
         periods: this.periods,
-        flag: this.flag,
-        orderBy: this.orderBy,
+        orderByList: this.orderByList,
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
       }
@@ -213,7 +210,6 @@ export default {
         periods: this.temp.periods
       }
       try {
-        console.log("aaaaaaaaaa")
         const result = await BacktestModel.exportCodeIndexBackOfexcel(params)
         if (result.code == '9999') {
           this.$message.error(result.message)
@@ -241,26 +237,36 @@ export default {
     // 多选
     handleSelectionChange(val) {
       this.multipleSelection = val
-      // this.$emit(
-      //   'batchInsertCoreIndex',
-      //   val.map(item => {
-      //     return {
-      //       id: item.code,
-      //       defectStatus: item.defectStatus,
-      //     }
-      //   }),
-      // )
     },
     // 限制表格勾选，勾选规则:需要是同一类型的数据
     selectInit(row) {
-      // 限制逻辑，返回true则为可勾选，反之则禁止勾选
-      // const judge = true
-      // if (this.multipleSelection.length != 0) {
-      //   judge = this.multipleSelection.some(item => {
-      //     return item.code === row.code
-      //   })
-      // }
       return !(row.inPoolStatus == 'in')
+    },
+    //根据字段排序
+    sortTableFun(column) {
+      if (column.prop) {
+        //该列有绑定prop字段走这个分支
+        if (column.order == 'ascending') {
+          //当用户点击的是升序按钮，即ascending时
+          this.orderByList =  [
+            {
+              orderBy: column.prop, 
+              orderType: "asc"
+            }
+          ]
+        } else if (column.order == 'descending') {
+          //当用户点击的是升序按钮，即descending时
+          this.orderByList =  [
+            {
+              orderBy: column.prop, 
+              orderType: "des"
+            }
+          ]
+        } else {
+          this.orderByList = []
+        }
+        this.getBackTestList()
+      }
     },
     // 分页相关方法
     async hCurrentChange(curPage) {
@@ -268,38 +274,14 @@ export default {
       // 1. 更新页码
       this.pageParams.page = curPage
       // 2. 重发请求
-      await this.getCoreIndexHistoryList()
+      await this.getBackTestList()
     },
     // pageSize 改变时会触发:用户调整了每页显示的条数
     async hSizeChange(pagesize) {
       // 1. 更新每页条数
       this.pageParams.pagesize = pagesize
       // 2. 重发请求
-      await this.getCoreIndexHistoryList()
-    },
-        //根据字段排序
-    sortTableFun(column) {
-      //用户点击这一列的上下排序按钮时，触发的函数
-      this.column = column.prop //该方法获取到当前列绑定的prop字段名赋值给一个变量，之后这个变量做为入参传给后端
-      if (column.prop) {
-        //该列有绑定prop字段走这个分支
-        if (column.order == 'ascending') {
-          //当用户点击的是升序按钮，即ascending时
-          this.flag = true
-          this.orderBy = column.prop
-          // if (this.column == 'isNewShares') {
-          //   this.isNewShares = !this.isNewShares
-          // }
-        } else if (column.order == 'descending') {
-          //当用户点击的是升序按钮，即descending时
-          this.flag = false
-          this.orderBy = column.prop
-          // if (this.column == 'isNewShares') {
-          //   this.isNewShares = !this.isNewShares
-          // }
-        }
-        this.getBackTestList()
-      }
+      await this.getBackTestList()
     },
   },
 }

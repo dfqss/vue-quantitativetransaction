@@ -148,16 +148,14 @@ export default {
       total: 0,
       // 当前页数
       curPage: 0,
-      //正序倒序，默认正序
-      flag: true,
-      //根据某个字段排序
-      orderBy: 'code',
-      //是否新股
+      // 是否新股
       isNewShares: '',
-      //是否是否本期新增
+      // 是否是否本期新增
       isShowTimes: '',
-      //期数
+      // 期数
       periods: 0,
+      // 排序列表
+      orderByList: [],
     }
   },
   // 生命周期函数
@@ -180,10 +178,9 @@ export default {
         codeName: this.codeName,
         pageNum: this.pageParams.page,
         pageSize: this.pageParams.pagesize,
-        flag: this.flag,
-        orderBy: this.orderBy,
         isNewShares: this.isNewShares,
         isShowTimes: this.isShowTimes,
+        orderByList: this.orderByList,
       }
       try {
         const result = await InvestmentModel.getCoreIndexList(params)
@@ -301,6 +298,32 @@ export default {
       // }
       return !(row.inPoolStatus == 'in')
     },
+    // 根据字段排序
+    sortTableFun(column) {
+      if (column.prop) {
+        //该列有绑定prop字段走这个分支
+        if (column.order == 'ascending') {
+          //当用户点击的是升序按钮，即ascending时
+          this.orderByList =  [
+            {
+              orderBy: column.prop, 
+              orderType: "asc"
+            }
+          ]
+        } else if (column.order == 'descending') {
+          //当用户点击的是升序按钮，即descending时
+          this.orderByList =  [
+            {
+              orderBy: column.prop, 
+              orderType: "des"
+            }
+          ]
+        } else {
+          this.orderByList = []
+        }
+        this.getCoreIndexList()
+      }
+    },
     // 分页相关方法
     async hCurrentChange(curPage) {
       // alert(curPage)
@@ -325,34 +348,6 @@ export default {
     //         this.page = 1
     //     }
     // }
-    //根据字段排序
-    sortTableFun(column) {
-      //用户点击这一列的上下排序按钮时，触发的函数
-      console.log('is_new_shares:' + this.isNewShares)
-      console.log('isShowTimes:' + this.isShowTimes)
-      this.column = column.prop //该方法获取到当前列绑定的prop字段名赋值给一个变量，之后这个变量做为入参传给后端
-      console.log(this.column)
-      console.log(column.prop)
-      if (column.prop) {
-        //该列有绑定prop字段走这个分支
-        if (column.order == 'ascending') {
-          //当用户点击的是升序按钮，即ascending时
-          this.flag = true
-          this.orderBy = column.prop
-          if (this.column == 'isNewShares') {
-            this.isNewShares = !this.isNewShares
-          }
-        } else if (column.order == 'descending') {
-          //当用户点击的是升序按钮，即descending时
-          this.flag = false
-          this.orderBy = column.prop
-          if (this.column == 'isNewShares') {
-            this.isNewShares = !this.isNewShares
-          }
-        }
-        this.getCoreIndexList()
-      }
-    },
   },
 }
 </script>
