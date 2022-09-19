@@ -137,6 +137,14 @@ export default {
       }
       try {
         const result = await AllIndexModel.uploadFile(formData)
+        const repetition = result['upload_ret'][0].repetition
+        if (repetition === 'true') {
+          this.$notify({ title: '警告', message: '该文件重复上传', type: 'warning' })
+          this.$message.error('该文件重复上传')
+          this.fileList = []
+          this.loading = false
+          return
+        }
         if (result.code == '0000') {
           this.$notify({ title: '成功', message: result.message, type: 'success' })
         } else {

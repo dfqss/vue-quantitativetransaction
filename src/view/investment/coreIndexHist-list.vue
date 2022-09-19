@@ -18,13 +18,14 @@
           </el-col>
         </el-form-item>
 
-        <el-form-item label="计算日期">
+        <el-form-item label="请选择计算日期区域">
           <!-- <span class="demonstration">默认</span> -->
           <el-date-picker
             v-model="calDate"
-            type="date"
+            type="monthrange"
             value-format="yyyy-MM-dd"
-            placeholder="选择日期"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
             @change="orderNoChange"
           >
           </el-date-picker>
@@ -32,12 +33,7 @@
 
         <el-form-item label="期数">
           <el-col :span="20">
-            <el-input
-              placeholder="请输入内容"
-              size="medium"
-              v-model="periods"
-              @input="orderNoChange"
-            ></el-input>
+            <el-input placeholder="请输入内容" size="medium" v-model="periods" @input="orderNoChange"></el-input>
           </el-col>
         </el-form-item>
       </el-form>
