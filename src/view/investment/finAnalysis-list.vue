@@ -255,8 +255,8 @@ export default {
       multipleSelection: [],
       //正序倒序，默认正序
       orderFlag: true,
-      //根据某个字段排序
-      orderBy: '',
+      // 排序列表
+      orderByList: [],
       // 详情数据
       temp: {
         code: null,
@@ -321,8 +321,7 @@ export default {
         codeName: this.codeName,
         industry_sw: this.industry_sw,
         pageNum: this.pageParams.page,
-        orderFlag: this.orderFlag,
-        orderBy: this.orderBy,
+        orderByList: this.orderByList,
         pageSize: this.pageParams.pagesize,
         flag: this.flag,
       }
@@ -400,22 +399,26 @@ export default {
     },
     //根据字段排序
     sortTableFun(column) {
-      //用户点击这一列的上下排序按钮时，触发的函数
-      console.log('is_new_shares:' + this.isNewShares)
-      console.log('isShowTimes:' + this.isShowTimes)
-      this.column = column.prop //该方法获取到当前列绑定的prop字段名赋值给一个变量，之后这个变量做为入参传给后端
-      console.log(this.column)
-      console.log(column.prop)
       if (column.prop) {
         //该列有绑定prop字段走这个分支
         if (column.order == 'ascending') {
           //当用户点击的是升序按钮，即ascending时
-          this.orderFlag = true
-          this.orderBy = column.prop
+          this.orderByList = [
+            {
+              orderBy: column.prop,
+              orderType: 'asc',
+            },
+          ]
         } else if (column.order == 'descending') {
           //当用户点击的是升序按钮，即descending时
-          this.orderFlag = false
-          this.orderBy = column.prop
+          this.orderByList = [
+            {
+              orderBy: column.prop,
+              orderType: 'des',
+            },
+          ]
+        } else {
+          this.orderByList = []
         }
         this.getFinAnalysisIndexList()
       }
