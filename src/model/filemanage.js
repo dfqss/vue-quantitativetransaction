@@ -33,13 +33,13 @@ class Filemanage {
     static async importListingData(data) {
         return _axios({
             method: 'post',
-            url: 'investmentV1/importData/importListingData',
+            url: Config.springURL + 'quaTraV1/importData/importListingData',
             data,
         })
     }
 
     // 查询批量文件数据
-    static async getBatchFilesList(data){
+    static async getBatchFilesList(data) {
         return _axios({
             method: 'post',
             url: 'investmentV1/batchFiles/getBatchFilesList',
